@@ -22,4 +22,8 @@ Minusknappen ved a og b skifter fortegn, også når telefonens tastatur ikke har
 ## Klassen
 Læreren vælger **Jeg er lærer** og får en kode, et link og en QR-kode. Eleverne åbner linket på deres egen telefon, eller vælger **Jeg er elev** og skriver koden. Rummet ligger i Firebase, så lærerens telefon og elevernes telefoner deler det samme rum.
 
-Læreren vælger sværhedsgrad for rummet. **Kun positive tal** er standard: a og b fra 0 til 10 i spring på 0,25, og computerens punkter ligger i 1. kvadrant. **Også brøker** tillader a og b fra −10 til 10 i spring på 0,25, også negative. Uden for et rum kan a og b stadig være frie tal. Læreren kan lukke rummet, og det slettes også når den sidste elev er gået.
+Læreren vælger sværhedsgrad for rummet. **Kun positive tal** er standard: a og b fra 0 til 10 i spring på 0,25. **Også brøker** tillader a og b fra −10 til 10 i spring på 0,25, også negative.
+
+Læreren vælger også koordinatsystem og bonuspoint. **1 kvadrant** er standard, også uden for et rum: akser fra 0 til 10, og ingen punkter på y-aksen. **4 kvadranter** lægger akserne gennem midten, med x og y fra −10 til 10. Eleverne ser det bræt, læreren har valgt. Med bonuspoint giver et ramt skud 2 point, hvis linjen ikke er vandret. En vandret linje giver stadig 1 point. Et forbi-skud siger stadig hvor mange enheder linjen er over eller under, uden at vise en løsning.
+
+Uden for et rum kan a og b stadig være frie tal. Læreren kan lukke rummet, og det slettes også når den sidste elev er gået.

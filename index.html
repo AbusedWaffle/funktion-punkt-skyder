@@ -553,6 +553,41 @@
   }
   #screen-learn canvas { border-radius: 12px; box-shadow: var(--shadow); }
   #screen-learn .preview { flex: none; font-size: 1.15rem; padding: 8px 10px; }
+  #screen-teacher { display: block; }
+  .room-page { display: grid; gap: 12px; }
+  .room-page h2 { margin: 0; letter-spacing: -0.02em; }
+  .room-lead { margin: 0; color: var(--muted); }
+  .room-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch; }
+  .room-card {
+    background: var(--paper);
+    border: 1px solid var(--stroke);
+    border-radius: 14px;
+    padding: 12px;
+    display: grid;
+    gap: 8px;
+    align-content: start;
+    box-shadow: var(--shadow);
+    min-width: min(100%, 220px);
+    flex: 1 1 220px;
+  }
+  .room-card.mode { background: #fff8f4; border-color: #e7c2b4; }
+  .room-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .room-actions .btn { min-height: 40px; padding: 0.45rem 0.7rem; }
+  .room-actions .btn[aria-pressed="true"] {
+    background: var(--ink);
+    color: #fff;
+    border-color: var(--ink);
+  }
+  .table-wrap { overflow-x: auto; background: var(--paper); border: 1px solid var(--stroke); border-radius: 14px; }
+  .table-wrap table { width: 100%; border-collapse: collapse; }
+  .table-wrap th, .table-wrap td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); font-size: 0.92rem; }
+  .table-wrap th { color: var(--muted); font-size: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase; }
+  .tag { display: inline-block; border-radius: 999px; padding: 2px 8px; font-size: 0.8rem; font-weight: 700; }
+  .tag-play { background: var(--good-bg); color: var(--good); }
+  .tag-menu { background: var(--info-bg); color: var(--muted); }
+  .tag-learn { background: #e7eef8; color: #2a4f8f; }
+  #teacher-link { word-break: break-all; color: var(--accent-dark); }
+  #teacher-qr { width: 148px; height: auto; border-radius: 10px; background: #fff; }
   .learn-controls { flex: none; display: grid; gap: 8px; }
   .learn-row {
     display: grid;
@@ -675,7 +710,7 @@
           <li>En runde er ét skud fra hver spiller. Når nogen når 10, skyder de andre runden færdig. Bagefter vinder den, der alene har flest point, hvis det er mindst 10. Står flere lige øverst, spilles en runde mere.</li>
         </ul>
         <p>Punkter på y-aksen (x = 0) bruges ikke, fordi enhver linje med den rigtige b ville ramme dem.</p>
-        <p><strong>Lærer og elever.</strong> Læreren opretter et rum. Eleverne går med med kode eller link og et navn. I grupper starter spillet, når læreren trykker Start, eller siger at gruppen er klar. Læreren kan lukke for nye spil, sende alle til menuen og selv hoppe ind i spillet. Under spillet er der altid en knap tilbage til lærermenuen. Læreren vælger sværhedsgrad for rummet. Uden for et rum kan a og b være frie tal.</p>
+        <p><strong>Lærer og elever.</strong> Læreren opretter et rum. Eleverne går med med kode eller link og et navn. I grupper starter spillet, når læreren trykker Start, eller siger at gruppen er klar. Læreren kan lukke for nye spil, sende alle til menuen og selv hoppe ind i spillet. Under spillet er der altid en knap tilbage til lærermenuen. Læreren vælger sværhedsgrad, koordinatsystem og bonuspoint for rummet. 1 kvadrant er akser fra 0 til 10. 4 kvadranter lægger akserne gennem midten, med x og y fra −10 til 10, og stadig ingen punkter på y-aksen. Med bonuspoint giver et ramt skud 2 point, hvis linjen ikke er vandret. En vandret linje giver 1 point. Uden for et rum er brættet 1 kvadrant, og a og b kan være frie tal.</p>
       </div>
     </details>
   </section>
@@ -739,7 +774,25 @@
             <button type="button" class="btn secondary" id="diff-positive" aria-pressed="true">Kun positive tal</button>
             <button type="button" class="btn secondary" id="diff-quarters" aria-pressed="false">Også brøker</button>
           </div>
-          <div class="fine" id="teacher-diff-hint">a og b fra 0 til 10, i spring på 0,25. Punkter i 1. kvadrant.</div>
+          <div class="fine" id="teacher-diff-hint">a og b fra 0 til 10, i spring på 0,25.</div>
+        </div>
+        <div class="room-card mode">
+          <div class="fine">Koordinatsystem</div>
+          <strong id="teacher-board-label">1 kvadrant</strong>
+          <div class="room-actions">
+            <button type="button" class="btn secondary" id="board-one" aria-pressed="true">1 kvadrant</button>
+            <button type="button" class="btn secondary" id="board-four" aria-pressed="false">4 kvadranter</button>
+          </div>
+          <div class="fine" id="teacher-board-hint">Akser fra 0 til 10. Ingen punkter på y-aksen.</div>
+        </div>
+        <div class="room-card mode">
+          <div class="fine">Bonuspoint</div>
+          <strong id="teacher-bonus-label">Fra</strong>
+          <div class="room-actions">
+            <button type="button" class="btn secondary" id="bonus-off" aria-pressed="true">Fra</button>
+            <button type="button" class="btn secondary" id="bonus-on" aria-pressed="false">Til</button>
+          </div>
+          <div class="fine" id="teacher-bonus-hint">Hvert ramt skud giver 1 point.</div>
         </div>
         <div class="room-card">
           <button type="button" class="btn" id="teacher-start">Start spillet</button>
@@ -821,7 +874,7 @@
         <details class="rules-pop">
           <summary>Regler</summary>
           <div class="rules-card">
-            <p>Rammer hvis |y − (ax + b)| ≤ 0,02. Ingen facit. Énspiller: prøv igen på samme punkt. Flerspiller: turen går videre ved forbi, og den ramte lægger et nyt punkt. Vinder kåres først efter runden, og kun hvis én spiller alene har flest point og mindst 10.</p>
+            <p>Rammer hvis |y − (ax + b)| ≤ 0,02. Ingen facit. Énspiller: prøv igen på samme punkt. Flerspiller: turen går videre ved forbi, og den ramte lægger et nyt punkt. Vinder kåres først efter runden, og kun hvis én spiller alene har flest point og mindst 10. I et rum med bonuspoint giver et ramt skud 2 point, hvis linjen ikke er vandret. En vandret linje giver 1.</p>
           </div>
         </details>
         <button type="button" class="teacher-back" id="to-teacher" hidden>Til lærermenuen</button>
@@ -886,8 +939,20 @@
     return Math.abs(y - (a * x + b)) <= limit + 1e-9;
   }
 
-  function canPlacePoint(x, y) {
+  function pointsForShot(hit, a, bonus) {
+    if (!hit) return 0;
+    if (bonus && a !== 0) return 2;
+    return 1;
+  }
+
+  function canPlacePoint(x, y, board) {
     if (!Number.isInteger(x) || !Number.isInteger(y)) return false;
+    if (board == null) board = boardSpec().four ? 'four' : 'one';
+    if (board === 'four') {
+      if (x === 0) return false;
+      if (x < -10 || x > 10 || y < -10 || y > 10) return false;
+      return true;
+    }
     if (x < 1 || x > 10) return false;
     if (y < 0 || y > 10) return false;
     return true;
@@ -944,7 +1009,8 @@
   }
 
   function clipLineToBoard(a, b) {
-    var xmin = 0, xmax = 10, ymin = 0, ymax = 10;
+    var spec = boardSpec();
+    var xmin = spec.min, xmax = spec.max, ymin = spec.min, ymax = spec.max;
     var pts = [];
     function add(x, y) {
       if (!Number.isFinite(x) || !Number.isFinite(y)) return;
@@ -1109,10 +1175,33 @@
     return Math.abs(n * 4 - Math.round(n * 4)) < 1e-6;
   }
 
+  function currentRoom() {
+    var sess = classSession();
+    if (!sess) return null;
+    return classReadRoom(sess.code);
+  }
+
+  function useRoomBoard() {
+    if (state.classroom || state.teacherPlaying) return true;
+    if (learnScreen && !learnScreen.hidden) return !!currentRoom();
+    return false;
+  }
+
+  function boardSpec() {
+    var room = useRoomBoard() ? currentRoom() : null;
+    if (room && room.board === 'four') return { min: -10, max: 10, four: true };
+    return { min: 0, max: 10, four: false };
+  }
+
+  function roomBonus() {
+    if (!state.classroom && !state.teacherPlaying) return false;
+    var room = currentRoom();
+    return !!(room && room.bonus);
+  }
+
   function roomPlayLimits() {
     if (!state.classroom && !state.teacherPlaying) return null;
-    var sess = classSession();
-    var room = sess ? classReadRoom(sess.code) : null;
+    var room = currentRoom();
     if (room && room.difficulty === 'quarters') {
       return {
         min: -10,
@@ -1137,6 +1226,13 @@
   }
 
   function randomTarget() {
+    if (boardSpec().four) {
+      var n = Math.floor(Math.random() * 20);
+      return {
+        x: n < 10 ? (n - 10) : (n - 9),
+        y: -10 + Math.floor(Math.random() * 21)
+      };
+    }
     var lim = roomPlayLimits();
     var yMin = lim ? lim.yMin : 0;
     return {
@@ -1155,20 +1251,24 @@
   }
 
   function toCanvas(x, y, w, h) {
+    var spec = boardSpec();
+    var span = spec.max - spec.min;
     var plotW = w - PAD_L - PAD_R;
     var plotH = h - PAD_T - PAD_B;
     return [
-      PAD_L + (x / 10) * plotW,
-      PAD_T + (1 - y / 10) * plotH
+      PAD_L + ((x - spec.min) / span) * plotW,
+      PAD_T + (1 - (y - spec.min) / span) * plotH
     ];
   }
 
   function fromCanvas(px, py, w, h) {
+    var spec = boardSpec();
+    var span = spec.max - spec.min;
     var plotW = w - PAD_L - PAD_R;
     var plotH = h - PAD_T - PAD_B;
     return [
-      ((px - PAD_L) / plotW) * 10,
-      (1 - (py - PAD_T) / plotH) * 10
+      spec.min + ((px - PAD_L) / plotW) * span,
+      spec.min + (1 - (py - PAD_T) / plotH) * span
     ];
   }
 
@@ -1253,7 +1353,83 @@
     g.fill();
   }
 
+  function axisLabel(n) {
+    if (n < 0) return '−' + String(-n);
+    return String(n);
+  }
+
+  function paintAxesFour(g, w, h) {
+    var min = -10, max = 10;
+    g.clearRect(0, 0, w, h);
+    g.fillStyle = '#fffdf8';
+    g.fillRect(0, 0, w, h);
+    g.globalAlpha = 1;
+    g.setLineDash([]);
+    g.lineWidth = 1;
+    g.strokeStyle = '#efe4d2';
+    g.beginPath();
+    for (var i = min; i <= max; i++) {
+      var ax = toCanvas(i, min, w, h);
+      var bx = toCanvas(i, max, w, h);
+      g.moveTo(ax[0], ax[1]);
+      g.lineTo(bx[0], bx[1]);
+      var cy = toCanvas(min, i, w, h);
+      var dy = toCanvas(max, i, w, h);
+      g.moveTo(cy[0], cy[1]);
+      g.lineTo(dy[0], dy[1]);
+    }
+    g.stroke();
+    g.strokeStyle = '#2c241b';
+    g.lineWidth = 1.7;
+    g.beginPath();
+    var x0 = toCanvas(min, 0, w, h);
+    var x1 = toCanvas(max, 0, w, h);
+    var y0 = toCanvas(0, min, w, h);
+    var y1 = toCanvas(0, max, w, h);
+    g.moveTo(x0[0], x0[1]);
+    g.lineTo(x1[0], x1[1]);
+    g.moveTo(y0[0], y0[1]);
+    g.lineTo(y1[0], y1[1]);
+    g.stroke();
+    g.fillStyle = '#2c241b';
+    arrowHead(g, x1[0] + 11, x1[1], 1, 0);
+    arrowHead(g, y1[0], y1[1] - 11, 0, -1);
+    var plotW = w - PAD_L - PAD_R;
+    var step = plotW < 420 ? 5 : 2;
+    g.fillStyle = '#6f6458';
+    g.font = '11px system-ui, "Segoe UI", sans-serif';
+    g.textAlign = 'center';
+    g.textBaseline = 'top';
+    for (var xi = min; xi <= max; xi += step) {
+      if (xi === 0) continue;
+      var xt = toCanvas(xi, 0, w, h);
+      g.fillText(axisLabel(xi), xt[0], xt[1] + 6);
+    }
+    g.textAlign = 'right';
+    g.textBaseline = 'middle';
+    for (var yi = min; yi <= max; yi += step) {
+      if (yi === 0) continue;
+      var yt = toCanvas(0, yi, w, h);
+      g.fillText(axisLabel(yi), yt[0] - 7, yt[1]);
+    }
+    var origin = toCanvas(0, 0, w, h);
+    g.textAlign = 'right';
+    g.textBaseline = 'top';
+    g.fillText('0', origin[0] - 7, origin[1] + 5);
+    g.fillStyle = '#2c241b';
+    g.font = 'italic 15px system-ui, "Segoe UI", sans-serif';
+    g.textAlign = 'left';
+    g.textBaseline = 'middle';
+    g.fillText('x', x1[0] + 16, x1[1] + 14);
+    g.textAlign = 'right';
+    g.fillText('y', y1[0] - 8, y1[1] - 14);
+  }
+
   function paintAxes(g, w, h) {
+    if (boardSpec().four) {
+      paintAxesFour(g, w, h);
+      return;
+    }
     g.clearRect(0, 0, w, h);
     g.fillStyle = '#fffdf8';
     g.fillRect(0, 0, w, h);
@@ -1342,8 +1518,12 @@
     paintAxes(ctx, w, h);
 
     if (state.phase === 'setup' || state.phase === 'replace') {
-      for (var gx = 1; gx <= 10; gx++) {
-        for (var gy = 0; gy <= 10; gy++) {
+      var placeSpec = boardSpec();
+      var gx0 = placeSpec.four ? placeSpec.min : 1;
+      var gy0 = placeSpec.four ? placeSpec.min : 0;
+      for (var gx = gx0; gx <= placeSpec.max; gx++) {
+        if (gx === 0) continue;
+        for (var gy = gy0; gy <= placeSpec.max; gy++) {
           if (occupied(gx, gy)) continue;
           var g = toCanvas(gx, gy, w, h);
           ctx.beginPath();
@@ -1736,8 +1916,9 @@
     formErrorEl.hidden = !state.formError;
     formErrorEl.textContent = state.formError || '';
     var playLim = roomPlayLimits();
-    shotLimitEl.hidden = !playLim;
-    shotLimitEl.textContent = playLim ? playLim.hint : '';
+    var bonusNote = roomBonus() ? ' Skrå linje giver 2 point. Vandret linje giver 1.' : '';
+    shotLimitEl.hidden = !playLim && !bonusNote;
+    shotLimitEl.textContent = (playLim ? playLim.hint : '') + bonusNote;
     coefA.setAttribute('aria-invalid', state.formError ? 'true' : 'false');
     coefB.setAttribute('aria-invalid', state.formError ? 'true' : 'false');
     updatePreview();
@@ -1757,7 +1938,7 @@
         ? 'Koordinatsystem. Tryk for at lukke a og b.'
         : 'Koordinatsystem. Tryk for at åbne a og b.');
     } else {
-      canvas.setAttribute('aria-label', 'Koordinatsystem fra 0 til 10.');
+      canvas.setAttribute('aria-label', boardSpec().four ? 'Koordinatsystem fra −10 til 10.' : 'Koordinatsystem fra 0 til 10.');
     }
   }
 
@@ -1825,10 +2006,12 @@
     seenScores.clear();
   }
 
-  function startSolo() {
+  function startSolo(keepRoom) {
     invalidate();
-    state.classroom = false;
-    state.teacherPlaying = false;
+    if (!keepRoom) {
+      state.classroom = false;
+      state.teacherPlaying = false;
+    }
     var name = cleanName(soloNameInput.value, 'Spiller 1');
     state.mode = 'solo';
     state.players = [freshPlayer(name, COLORS[0])];
@@ -1948,6 +2131,24 @@
     againBtn.focus();
   }
 
+  function hitResultText(a, b, x, y, shooterName) {
+    var fn = formatFunction(a, b);
+    var bonus = roomBonus();
+    var pts = pointsForShot(true, a, bonus);
+    var spot = fn + ' rammer (' + x + ', ' + y + ').';
+    var text;
+    if (bonus) {
+      text = (pts === 2
+        ? 'Ramt. 2 point, fordi linjen ikke er vandret.'
+        : 'Ramt. 1 point, fordi linjen er vandret.') + ' ' + spot;
+    } else if (shooterName) {
+      text = 'Ramt! ' + shooterName + ' får 1 point. ' + spot;
+    } else {
+      text = 'Ramt! ' + spot + ' +1 point.';
+    }
+    return { pts: pts, text: text };
+  }
+
   function missText(a, b, x, y) {
     var delta = (a * x + b) - y;
     var diff = Math.round(Math.abs(delta) * 10000) / 10000;
@@ -1982,10 +2183,11 @@
     }
     if (state.mode === 'solo') {
       if (hit) {
-        state.players[0].score += 1;
+        var soloHit = hitResultText(a, b, x, y, null);
+        state.players[0].score += soloHit.pts;
         classNoteShot(true);
         state.flash = { x: x, y: y, t: performance.now() };
-        state.result = 'Ramt! ' + fn + ' rammer (' + x + ', ' + y + '). +1 point.';
+        state.result = soloHit.text;
         if (Math.abs(y - (a * x + b)) > 1e-4) state.result += ' Inden for margen på 0,02.';
         state.resultKind = 'good';
         state.banner = state.players[0].score >= 10 ? 'Sådan.' : 'Nyt punkt er på vej.';
@@ -2028,7 +2230,8 @@
 
     if (hit) {
       var shooter = state.players[state.turn];
-      shooter.score += 1;
+      var multiHit = hitResultText(a, b, x, y, shooter.name);
+      shooter.score += multiHit.pts;
       var owner = snap.owner;
       var targetPlayer = state.players[owner];
       targetPlayer.point = null;
@@ -2036,7 +2239,7 @@
       state.phase = 'replace';
       state.replaceIndex = owner;
       state.locked = true;
-      state.result = 'Ramt! ' + shooter.name + ' får 1 point. ' + fn + ' rammer (' + x + ', ' + y + ').';
+      state.result = multiHit.text;
       if (shooter.score >= 10) state.result += ' Runden spilles færdig, før der kåres en vinder.';
       state.resultKind = 'good';
       state.banner = targetPlayer.name + ', dit punkt blev ramt. Klik et nyt ledigt skæringspunkt.';
@@ -2082,8 +2285,9 @@
     }
     state.locked = true;
     var earlyHit = isHit(target.x, target.y, a, b);
+    var earlyWho = state.mode === 'multi' ? state.players[state.turn].name : null;
     state.result = earlyHit
-      ? ('Ramt! ' + formatFunction(a, b) + ' rammer (' + target.x + ', ' + target.y + ').')
+      ? hitResultText(a, b, target.x, target.y, earlyWho).text
       : (missText(a, b, target.x, target.y) + (state.mode === 'solo' ? ' Prøv igen på samme punkt.' : ''));
     state.resultKind = earlyHit ? 'good' : 'bad';
     renderUI();
@@ -2133,8 +2337,12 @@
     }
     if (!canPlacePoint(pt.x, pt.y)) {
       state.placeError = pt.x === 0
-        ? 'Ikke på y-aksen. Vælg et punkt med x fra 1 til 10.'
-        : 'Vælg et heltalskryds med x fra 1 til 10 og y fra 0 til 10.';
+        ? (boardSpec().four
+          ? 'Ikke på y-aksen. Vælg et punkt med x fra −10 til 10, bare ikke 0.'
+          : 'Ikke på y-aksen. Vælg et punkt med x fra 1 til 10.')
+        : (boardSpec().four
+          ? 'Vælg et heltalskryds med x og y fra −10 til 10, ikke på y-aksen.'
+          : 'Vælg et heltalskryds med x fra 1 til 10 og y fra 0 til 10.');
       renderUI();
       return;
     }
@@ -2645,6 +2853,14 @@ function qrMatrix(text, maskForce) {
   var teacherDiffHint = document.getElementById('teacher-diff-hint');
   var diffPositiveBtn = document.getElementById('diff-positive');
   var diffQuartersBtn = document.getElementById('diff-quarters');
+  var teacherBoardLabel = document.getElementById('teacher-board-label');
+  var teacherBoardHint = document.getElementById('teacher-board-hint');
+  var boardOneBtn = document.getElementById('board-one');
+  var boardFourBtn = document.getElementById('board-four');
+  var teacherBonusLabel = document.getElementById('teacher-bonus-label');
+  var teacherBonusHint = document.getElementById('teacher-bonus-hint');
+  var bonusOffBtn = document.getElementById('bonus-off');
+  var bonusOnBtn = document.getElementById('bonus-on');
   var modeAleneBtn = document.getElementById('mode-alene');
   var modeGrupperBtn = document.getElementById('mode-grupper');
   var teacherStartBtn = document.getElementById('teacher-start');
@@ -2759,6 +2975,8 @@ function qrMatrix(text, maskForce) {
       mode: d.mode === 'grupper' ? 'grupper' : 'alene',
       gamesOpen: d.gamesOpen !== false,
       difficulty: d.difficulty === 'quarters' ? 'quarters' : 'positive',
+      board: d.board === 'four' ? 'four' : 'one',
+      bonus: d.bonus === true,
       cmd: { id: classNum(cmd.id), type: type, group: group }
     };
   }
@@ -2831,6 +3049,8 @@ function qrMatrix(text, maskForce) {
       mode: room.mode === 'grupper' ? 'grupper' : 'alene',
       gamesOpen: !!room.gamesOpen,
       difficulty: room.difficulty === 'quarters' ? 'quarters' : 'positive',
+      board: room.board === 'four' ? 'four' : 'one',
+      bonus: !!room.bonus,
       cmd: classCmdPayload(room.cmd)
     }).catch(function (err) { classNetError(classErrText(err)); });
   }
@@ -3012,7 +3232,7 @@ function qrMatrix(text, maskForce) {
     }
     var stu = classReadStudent(sess.code, sess.id);
     lobbyHi.textContent = 'Hej, ' + sess.name;
-    lobbyRoom.textContent = 'Rum ' + room.code + ' · ' + (room.mode === 'grupper' ? 'Grupper' : 'Hver for sig') + ' · ' + (room.difficulty === 'quarters' ? 'Også brøker' : 'Kun positive tal');
+    lobbyRoom.textContent = 'Rum ' + room.code + ' · ' + (room.mode === 'grupper' ? 'Grupper' : 'Hver for sig') + ' · ' + (room.difficulty === 'quarters' ? 'Også brøker' : 'Kun positive tal') + ' · ' + (room.board === 'four' ? '4 kvadranter' : '1 kvadrant') + (room.bonus ? ' · Bonuspoint' : '');
     var live;
     if (room.mode === 'grupper') {
       live = (stu && stu.group)
@@ -3094,9 +3314,9 @@ function qrMatrix(text, maskForce) {
       stu.where = 'playing';
       classWriteStudentRawFor(sess.code, stu);
     }
-    startSolo();
     state.classroom = true;
     state.teacherPlaying = false;
+    startSolo(true);
     renderUI();
   }
   function startTeacherGame(group) {
@@ -3121,9 +3341,9 @@ function qrMatrix(text, maskForce) {
     stu.where = 'playing';
     classWriteStudentRawFor(room.code, stu);
     soloNameInput.value = 'Lærer';
-    startSolo();
     state.classroom = true;
     state.teacherPlaying = true;
+    startSolo(true);
     renderUI();
   }
   function classBackToTeacher() {
@@ -3154,6 +3374,22 @@ function qrMatrix(text, maskForce) {
     classTeacherSnap = '';
     classRenderTeacher(true);
   }
+  function classSetBoard(board) {
+    var room = classOwnRoom();
+    if (!room) return;
+    room.board = board === 'four' ? 'four' : 'one';
+    classWriteRoom(room);
+    classTeacherSnap = '';
+    classRenderTeacher(true);
+  }
+  function classSetBonus(on) {
+    var room = classOwnRoom();
+    if (!room) return;
+    room.bonus = !!on;
+    classWriteRoom(room);
+    classTeacherSnap = '';
+    classRenderTeacher(true);
+  }
   function classToggleGames() {
     var room = classOwnRoom();
     if (!room) return;
@@ -3168,7 +3404,7 @@ function qrMatrix(text, maskForce) {
     var room = classReadRoom(sess.code);
     if (!room || room.teacherUid !== classUid) return;
     var students = classListStudents(room.code);
-    var snap = JSON.stringify({ mode: room.mode, gamesOpen: room.gamesOpen, difficulty: room.difficulty, cmd: room.cmd, students: students });
+    var snap = JSON.stringify({ mode: room.mode, gamesOpen: room.gamesOpen, difficulty: room.difficulty, board: room.board, bonus: room.bonus, cmd: room.cmd, students: students });
     if (!force && snap === classTeacherSnap) return;
     classTeacherSnap = snap;
     teacherTitle.textContent = 'Rum ' + room.code;
@@ -3191,9 +3427,22 @@ function qrMatrix(text, maskForce) {
     teacherDiffLabel.textContent = quarters ? 'Også brøker' : 'Kun positive tal';
     teacherDiffHint.textContent = quarters
       ? 'a og b fra −10 til 10, i spring på 0,25, også negative.'
-      : 'a og b fra 0 til 10, i spring på 0,25. Punkter i 1. kvadrant.';
+      : 'a og b fra 0 til 10, i spring på 0,25.';
     diffPositiveBtn.setAttribute('aria-pressed', quarters ? 'false' : 'true');
     diffQuartersBtn.setAttribute('aria-pressed', quarters ? 'true' : 'false');
+    var four = room.board === 'four';
+    teacherBoardLabel.textContent = four ? '4 kvadranter' : '1 kvadrant';
+    teacherBoardHint.textContent = four
+      ? 'Akser gennem midten. x og y fra −10 til 10. Ingen punkter på y-aksen.'
+      : 'Akser fra 0 til 10. Ingen punkter på y-aksen.';
+    boardOneBtn.setAttribute('aria-pressed', four ? 'false' : 'true');
+    boardFourBtn.setAttribute('aria-pressed', four ? 'true' : 'false');
+    teacherBonusLabel.textContent = room.bonus ? 'Skrå linje giver 2' : 'Fra';
+    teacherBonusHint.textContent = room.bonus
+      ? 'Et ramt skud, der ikke er vandret, giver 2 point. En vandret linje giver 1.'
+      : 'Hvert ramt skud giver 1 point.';
+    bonusOffBtn.setAttribute('aria-pressed', room.bonus ? 'false' : 'true');
+    bonusOnBtn.setAttribute('aria-pressed', room.bonus ? 'true' : 'false');
     teacherGamesBtn.textContent = room.gamesOpen ? 'Luk for nye spil' : 'Åbn for nye spil';
     teacherGamesLabel.textContent = room.gamesOpen ? 'Nye spil er åbne' : 'Nye spil er lukket';
     teacherPlayBtn.hidden = grupper;
@@ -3310,6 +3559,8 @@ function qrMatrix(text, maskForce) {
       mode: 'alene',
       gamesOpen: true,
       difficulty: 'positive',
+      board: 'one',
+      bonus: false,
       cmd: { id: 0, type: 'none', group: null },
       createdAt: classFs.serverTimestamp()
     });
@@ -3408,6 +3659,7 @@ function qrMatrix(text, maskForce) {
     if (sess.role === 'teacher') {
       classMaybeEmpty();
       if (!teacherScreen.hidden) classRenderTeacher(false);
+      classSyncPlayBoard();
       return;
     }
     var room = classReadRoom(sess.code);
@@ -3418,6 +3670,34 @@ function qrMatrix(text, maskForce) {
       var snap = JSON.stringify(room) + '|' + JSON.stringify(stu) + '|' + classLobbyNote;
       if (snap !== classLobbySnap) classRenderLobby();
     }
+    classSyncPlayBoard();
+  }
+  var classBoardSnap = '';
+  function classSyncPlayBoard() {
+    var playing = !gameScreen.hidden && (state.classroom || state.teacherPlaying);
+    var learning = learnScreen && !learnScreen.hidden && !!currentRoom();
+    if (!playing && !learning) return;
+    var room = currentRoom();
+    var key = room ? (room.board + '|' + room.difficulty + '|' + (room.bonus ? '1' : '0')) : '';
+    var moved = false;
+    if (playing && state.mode === 'solo' && state.phase === 'aim' && !state.locked && state.soloPoint && !canPlacePoint(state.soloPoint.x, state.soloPoint.y)) {
+      placeComputerPoint();
+      if (state.players[0]) {
+        state.banner = state.players[0].name + ', punktet er (' + state.soloPoint.x + ', ' + state.soloPoint.y + '). Tryk på koordinatsystemet for at skyde.';
+        state.bannerKind = 'info';
+      }
+      moved = true;
+    }
+    if (!moved && key === classBoardSnap) {
+      if (learning) drawLearn();
+      return;
+    }
+    classBoardSnap = key;
+    if (playing) {
+      renderUI();
+      draw();
+    }
+    if (learning) drawLearn();
   }
   async function classBoot() {
     for (var g = 1; g <= 4; g++) {
@@ -3525,6 +3805,10 @@ function qrMatrix(text, maskForce) {
   modeGrupperBtn.addEventListener('click', function () { classSetMode('grupper'); });
   diffPositiveBtn.addEventListener('click', function () { classSetDifficulty('positive'); });
   diffQuartersBtn.addEventListener('click', function () { classSetDifficulty('quarters'); });
+  boardOneBtn.addEventListener('click', function () { classSetBoard('one'); });
+  boardFourBtn.addEventListener('click', function () { classSetBoard('four'); });
+  bonusOffBtn.addEventListener('click', function () { classSetBonus(false); });
+  bonusOnBtn.addEventListener('click', function () { classSetBonus(true); });
   teacherStartBtn.addEventListener('click', function () { classCmd('start', null); });
   teacherMenuBtn.addEventListener('click', function () { classCmd('menu', null); });
   teacherGamesBtn.addEventListener('click', classToggleGames);
