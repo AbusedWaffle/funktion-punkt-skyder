@@ -685,13 +685,13 @@
         <span class="field-label">a <span class="field-help">hældning</span></span>
         <input id="learn-a" type="text" inputmode="decimal" enterkeyhint="done" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="24" value="2" aria-label="a, hældning">
         <button type="button" class="sign-btn" id="learn-sign-a" aria-label="Skift fortegn for a">−</button>
-        <input id="learn-slider-a" type="range" min="-5" max="5" step="0.5" value="2" aria-label="Skyder for hældning a">
+        <input id="learn-slider-a" type="range" min="0" max="10" step="0.25" value="2" aria-label="Skyder for hældning a">
       </div>
       <div class="learn-row">
         <span class="field-label">b <span class="field-help">skæring</span></span>
         <input id="learn-b" type="text" inputmode="decimal" enterkeyhint="done" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="24" value="1" aria-label="b, skæring med y-aksen">
         <button type="button" class="sign-btn" id="learn-sign-b" aria-label="Skift fortegn for b">−</button>
-        <input id="learn-slider-b" type="range" min="-5" max="5" step="0.5" value="1" aria-label="Skyder for skæring b">
+        <input id="learn-slider-b" type="range" min="0" max="10" step="0.25" value="1" aria-label="Skyder for skæring b">
       </div>
       <p id="learn-note" class="fine" hidden></p>
     </div>
@@ -1373,8 +1373,8 @@
   }
 
   function clampSlider(n) {
-    if (n < -5) return -5;
-    if (n > 5) return 5;
+    if (n < 0) return 0;
+    if (n > 10) return 10;
     return n;
   }
 
@@ -1411,8 +1411,8 @@
     if (b != null) learnSliderB.value = String(clampSlider(b));
     learnPreview.textContent = (a == null || b == null) ? 'f(x) = …' : formatFunction(a, b);
     var bits = [];
-    if (a != null && (a < -5 || a > 5)) bits.push('a er uden for skyderen, men linjen tegnes alligevel.');
-    if (b != null && (b < -5 || b > 5)) bits.push('b er uden for skyderen, men linjen tegnes alligevel.');
+    if (a != null && (a < 0 || a > 10)) bits.push('a er uden for skyderen, men linjen tegnes alligevel.');
+    if (b != null && (b < 0 || b > 10)) bits.push('b er uden for skyderen, men linjen tegnes alligevel.');
     learnNote.hidden = bits.length === 0;
     learnNote.textContent = bits.join(' ');
     drawLearn();
