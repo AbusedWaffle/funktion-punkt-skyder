@@ -1,0 +1,2071 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
+<title>Funktion Punkt Skyder</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23f3ecdf'/%3E%3Cpath d='M6 26h20M8 26V6' stroke='%232c241b' stroke-width='1.6'/%3E%3Cpath d='M8 22l8-8 4 3 6-8' stroke='%23b84a2a' stroke-width='2' fill='none'/%3E%3Ccircle cx='20' cy='17' r='2.4' fill='%232a4f8f'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #f3ecdf;
+    --ink: #2c241b;
+    --muted: #6f6458;
+    --paper: #fffdf8;
+    --line: #e7dccb;
+    --grid: #f0e6d6;
+    --accent: #b84a2a;
+    --accent-dark: #8d351c;
+    --stroke: #e5d8c6;
+    --good: #14613c;
+    --good-bg: #e5f4ec;
+    --bad: #8d2e24;
+    --bad-bg: #fbeceb;
+    --info-bg: #f6f0e4;
+    --shadow: 0 12px 40px rgba(70, 46, 20, 0.08);
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html { color-scheme: light; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.45;
+    background:
+      radial-gradient(1100px 480px at 8% -10%, #f8e7d4 0%, transparent 55%),
+      radial-gradient(800px 420px at 110% 0%, #e6efe8 0%, transparent 46%),
+      var(--bg);
+  }
+  button, input { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  button:focus-visible, input:focus-visible, summary:focus-visible {
+    outline: 3px solid #e7b59a;
+    outline-offset: 2px;
+  }
+  .page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 28px 20px 64px;
+  }
+  header.top {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    margin-bottom: 22px;
+  }
+  .mark { width: 52px; height: 52px; flex: none; }
+  .eyebrow {
+    margin: 0 0 2px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  h1 {
+    margin: 0;
+    font-size: clamp(1.7rem, 2.4vw, 2.35rem);
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    font-weight: 750;
+  }
+  .lede { margin: 4px 0 0; color: var(--muted); }
+  .choice-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .choice {
+    text-align: left;
+    background: var(--paper);
+    border: 1.5px solid var(--stroke);
+    border-radius: 16px;
+    padding: 16px;
+    display: grid;
+    gap: 4px;
+    box-shadow: var(--shadow);
+  }
+  .choice[aria-pressed="true"] {
+    border-color: var(--accent);
+    box-shadow: inset 0 0 0 1px var(--accent), var(--shadow);
+    background: #fff8f4;
+  }
+  .choice-kicker {
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .choice-title { font-size: 1.28rem; font-weight: 750; }
+  .choice-text { color: var(--muted); }
+  .setup {
+    margin-top: 14px;
+    background: var(--paper);
+    border: 1px solid var(--stroke);
+    border-radius: 16px;
+    padding: 16px;
+    display: grid;
+    gap: 12px;
+    box-shadow: var(--shadow);
+  }
+  .field { display: grid; gap: 4px; }
+  .field-label { font-weight: 700; font-size: 0.95rem; }
+  .field-help { color: var(--muted); font-weight: 500; }
+  .dot {
+    display: inline-block;
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: -1px;
+  }
+  input[type="text"] {
+    width: 100%;
+    font-size: 1.35rem;
+    padding: 0.65rem 0.75rem;
+    border: 1.5px solid #ddcfc0;
+    border-radius: 12px;
+    background: #fff;
+    font-variant-numeric: tabular-nums;
+  }
+  #shot-form input[type="text"] { font-size: 1.7rem; padding: 0.7rem 0.8rem; }
+  .coef-row { display: flex; gap: 8px; align-items: stretch; }
+  .coef-row input { flex: 1; min-width: 0; }
+  .sign-btn {
+    flex: none;
+    width: 64px;
+    min-height: 56px;
+    font-size: 2rem;
+    line-height: 1;
+    font-weight: 700;
+    border-radius: 12px;
+    border: 1.5px solid #ddcfc0;
+    background: #fff;
+  }
+  .sign-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+  input::placeholder { color: #b3a89a; }
+  .count-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .count-picker { display: flex; gap: 8px; }
+  .count-picker button {
+    min-width: 48px;
+    min-height: 44px;
+    border-radius: 10px;
+    border: 1.5px solid var(--stroke);
+    background: #fff;
+    font-weight: 700;
+  }
+  .count-picker button[aria-pressed="true"] {
+    background: var(--ink);
+    color: #fff;
+    border-color: var(--ink);
+  }
+  .name-grid { display: grid; gap: 10px; }
+  .btn {
+    appearance: none;
+    border: 0;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 700;
+    padding: 0.85rem 1.1rem;
+    border-radius: 12px;
+    min-height: 48px;
+  }
+  .btn:hover { background: var(--accent-dark); }
+  .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+  .btn.secondary {
+    background: transparent;
+    color: var(--ink);
+    border: 1.5px solid #ddcfc0;
+  }
+  .btn.secondary:hover { background: #f6f0e4; }
+  .btn.block { width: 100%; }
+  .rules {
+    margin-top: 16px;
+    background: var(--paper);
+    border: 1px solid var(--stroke);
+    border-radius: 16px;
+    padding: 12px 16px 14px;
+  }
+  .rules summary { font-weight: 750; cursor: pointer; }
+  .rules-body { display: grid; gap: 8px; color: var(--ink); }
+  .rules-body p, .rules-body ul { margin: 8px 0 0; }
+  .rules-body ul { padding-left: 1.2rem; }
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(280px, 360px);
+    gap: 22px;
+    align-items: start;
+  }
+  .board-wrap, .panel {
+    background: var(--paper);
+    border: 1px solid var(--stroke);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+  }
+  .board-wrap { padding: 12px 12px 10px; }
+  canvas {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    display: block;
+    touch-action: none;
+    border-radius: 8px;
+    background: #fffdf8;
+  }
+  canvas.is-placing { cursor: crosshair; }
+  .hint {
+    margin: 8px 4px 2px;
+    color: var(--muted);
+    font-size: 0.92rem;
+    min-height: 1.3em;
+  }
+  .panel {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .panel-title {
+    margin: 0;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 700;
+  }
+  #round-label { margin: -6px 0 0; color: var(--muted); font-size: 0.92rem; }
+  .score-row {
+    display: grid;
+    grid-template-columns: 12px minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: center;
+    padding: 8px 10px;
+    border-radius: 10px;
+  }
+  .score-row.is-active { background: #fff; box-shadow: inset 3px 0 0 var(--p, var(--accent)); }
+  .swatch { width: 12px; height: 12px; border-radius: 50%; background: var(--p, var(--accent)); }
+  .who { min-width: 0; }
+  .pname { display: block; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .role { display: block; font-size: 0.75rem; font-weight: 600; color: var(--muted); }
+  .pscore { font-variant-numeric: tabular-nums; font-weight: 750; font-size: 1.35rem; }
+  .of { font-size: 0.85rem; color: var(--muted); font-weight: 600; margin-left: 2px; }
+  @keyframes bump { from { transform: scale(1.18); } to { transform: scale(1); } }
+  .pscore.bump { animation: bump 0.35s ease; }
+  .result, .status {
+    margin: 0;
+    padding: 12px 14px;
+    border-radius: 12px;
+    overflow-wrap: anywhere;
+  }
+  .result.info, .status.info { background: var(--info-bg); }
+  .result.good, .status.good { background: var(--good-bg); color: var(--good); }
+  .result.bad, .status.bad { background: var(--bad-bg); color: var(--bad); }
+  .readout {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 750;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .targets { display: flex; flex-wrap: wrap; gap: 8px; }
+  .target-btn {
+    min-height: 44px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    border: 2px solid var(--p, var(--stroke));
+    background: #fff;
+    color: var(--p, var(--ink));
+    font-weight: 700;
+  }
+  .target-btn[aria-pressed="true"] { background: var(--p, var(--ink)); color: #fff; }
+  .error { margin: 0; color: var(--bad); font-weight: 650; min-height: 0; }
+  .preview {
+    margin: 0;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: var(--info-bg);
+    font-size: 1.45rem;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .fine { margin: 0; color: var(--muted); font-size: 0.88rem; }
+  #shot-form { display: grid; gap: 10px; }
+  #shoot { font-size: 1.15rem; }
+  .win-card { display: grid; gap: 8px; }
+  .win-card h2 { margin: 0; font-size: 1.7rem; letter-spacing: -0.03em; }
+  .win-card p { margin: 0; }
+  .win-card ol { margin: 0; padding-left: 1.2rem; }
+  .win-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .win-actions .btn { flex: 1 1 140px; }
+  .panel .rules { margin-top: 0; box-shadow: none; }
+  @media (max-width: 800px) {
+    .page { padding: 16px 14px 48px; }
+    .layout { grid-template-columns: 1fr; }
+    .choice-grid { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pscore.bump { animation: none; }
+  }
+
+  .learn-entry { margin: 14px 2px 0; }
+  .learn-link {
+    background: none;
+    border: 0;
+    padding: 4px 0;
+    color: var(--accent-dark);
+    font-weight: 750;
+    font-size: 1.05rem;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .text-btn {
+    flex: none;
+    background: none;
+    border: 0;
+    padding: 4px 2px;
+    min-height: 32px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--muted);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  #screen-game,
+  #screen-learn {
+    position: fixed;
+    inset: 0;
+    z-index: 5;
+    background:
+      radial-gradient(1100px 480px at 8% -10%, #f8e7d4 0%, transparent 55%),
+      var(--bg);
+  }
+  #screen-game {
+    display: flex;
+    flex-direction: column;
+    padding-top: env(safe-area-inset-top);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  .play {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .scorebar {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 42px;
+    padding: 0 8px;
+    background: rgba(255, 253, 248, 0.94);
+    border-bottom: 1px solid var(--stroke);
+  }
+  #screen-game #scoreboard {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    flex: 1;
+    overflow-x: auto;
+  }
+  #screen-game #round-label {
+    margin: 0;
+    font-size: 0.72rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 26vw;
+    flex: none;
+  }
+  #screen-game .score-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    white-space: nowrap;
+    background: transparent;
+    box-shadow: none;
+  }
+  #screen-game .score-row.is-active {
+    background: #fff;
+    box-shadow: inset 0 -2px 0 var(--p, var(--accent));
+  }
+  #screen-game .who { display: inline-flex; align-items: baseline; gap: 4px; min-width: 0; }
+  #screen-game .pname,
+  #screen-game .role { display: inline; font-size: 0.82rem; }
+  #screen-game .role { font-size: 0.68rem; }
+  #screen-game .pscore { font-size: 0.95rem; }
+  .rules-pop { position: relative; flex: none; }
+  .rules-pop summary {
+    list-style: none;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--muted);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .rules-pop summary::-webkit-details-marker { display: none; }
+  .rules-card {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 6px);
+    width: min(320px, 78vw);
+    z-index: 8;
+    background: var(--paper);
+    border: 1px solid var(--stroke);
+    border-radius: 12px;
+    padding: 10px 12px;
+    box-shadow: var(--shadow);
+    font-size: 0.85rem;
+  }
+  .rules-card p { margin: 0; }
+  #screen-game .board-wrap {
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border: 0;
+    box-shadow: none;
+    background: transparent;
+    border-radius: 0;
+    position: relative;
+    gap: 4px;
+  }
+  #screen-game canvas { aspect-ratio: auto; border-radius: 12px; box-shadow: var(--shadow); }
+  #screen-game canvas.is-aim { cursor: pointer; }
+  .board-overlay {
+    position: static;
+    z-index: 2;
+    width: 100%;
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 4px;
+    pointer-events: none;
+    max-height: 28%;
+    overflow: auto;
+  }
+  .board-overlay .result,
+  .board-overlay .status,
+  .board-overlay .readout,
+  .board-overlay .hint,
+  .board-overlay .error {
+    margin: 0;
+    padding: 5px 8px;
+    font-size: 0.8rem;
+    border-radius: 8px;
+    max-height: 4.8em;
+    overflow: auto;
+  }
+  .board-overlay .readout { font-size: 0.92rem; }
+  .board-overlay .hint { background: rgba(255, 253, 248, 0.92); }
+  .board-overlay .targets { pointer-events: auto; }
+  .board-overlay .target-btn { min-height: 36px; padding: 4px 10px; font-size: 0.85rem; }
+  #screen-game .win-card {
+    pointer-events: auto;
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: auto;
+    background: var(--paper);
+    border: 1px solid var(--stroke);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: var(--shadow);
+  }
+  #shot-form.shot-sheet {
+    flex: none;
+    gap: 4px;
+    margin: 0;
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+    background: var(--paper);
+    border-top: 1px solid var(--stroke);
+  }
+  .shot-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 6px 8px;
+  }
+  .shot-line > .field { flex: 1 1 9.2rem; min-width: 0; gap: 1px; }
+  .shot-sheet .field-label { font-size: 0.75rem; line-height: 1.15; }
+  #shot-form.shot-sheet input[type="text"] {
+    font-size: 1.05rem;
+    padding: 0.28rem 0.45rem;
+    min-height: 40px;
+    border-radius: 10px;
+  }
+  .shot-sheet .sign-btn {
+    width: 42px;
+    min-height: 40px;
+    font-size: 1.35rem;
+    border-radius: 10px;
+  }
+  .shot-sheet .preview {
+    flex: 1 1 7.5rem;
+    margin: 0;
+    padding: 6px 8px;
+    min-height: 40px;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+  }
+  #shot-form.shot-sheet #shoot {
+    flex: 0 0 auto;
+    min-height: 40px;
+    padding: 0.35rem 0.9rem;
+    font-size: 1rem;
+  }
+  .shot-sheet .error { font-size: 0.8rem; }
+  @media (max-width: 640px) {
+    #screen-game #round-label { display: none; }
+  }
+  #screen-learn {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow: auto;
+    padding: calc(8px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left));
+  }
+  .learn-top { display: flex; align-items: center; gap: 10px; flex: none; }
+  .learn-top h2 { margin: 0; font-size: 1.15rem; letter-spacing: -0.02em; }
+  .learn-copy { flex: none; font-size: 0.95rem; }
+  .learn-copy p { margin: 0 0 6px; }
+  .learn-stage {
+    flex: 1 1 auto;
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #screen-learn canvas { border-radius: 12px; box-shadow: var(--shadow); }
+  #screen-learn .preview { flex: none; font-size: 1.15rem; padding: 8px 10px; }
+  .learn-controls { flex: none; display: grid; gap: 8px; }
+  .learn-row {
+    display: grid;
+    grid-template-columns: auto minmax(4.2rem, 6.2rem) 42px minmax(0, 1fr);
+    gap: 6px;
+    align-items: center;
+  }
+  .learn-row .field-label { font-size: 0.82rem; white-space: nowrap; }
+  .learn-row .sign-btn { width: 42px; min-height: 40px; font-size: 1.35rem; }
+  .learn-row input[type="text"] { font-size: 1.1rem; padding: 0.35rem 0.45rem; min-height: 40px; }
+  #screen-learn input[type="range"] { width: 100%; height: 32px; accent-color: var(--accent); }
+  @media (max-width: 520px) {
+    .learn-row { grid-template-columns: auto minmax(0, 1fr) 42px; }
+    .learn-row input[type="range"] { grid-column: 1 / -1; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <svg class="mark" viewBox="0 0 48 48" aria-hidden="true">
+      <rect x="1.5" y="1.5" width="45" height="45" rx="12" fill="#fffdf8" stroke="#e5d8c6"></rect>
+      <path d="M12 36 H38 M14 38 V10" stroke="#2c241b" stroke-width="1.7" fill="none"></path>
+      <path d="M14 32 L23 22 L30 26 L38 14" stroke="#b84a2a" stroke-width="2.2" fill="none"></path>
+      <circle cx="30" cy="26" r="3.2" fill="#2a4f8f"></circle>
+    </svg>
+    <div>
+      <p class="eyebrow">Lineære funktioner</p>
+      <h1>Funktion Punkt Skyder</h1>
+      <p class="lede">Skyd et punkt ved at ramme det med en ret linje, f(x) = ax + b.</p>
+    </div>
+  </header>
+
+  <section id="screen-start">
+    <div class="choice-grid">
+      <button type="button" class="choice" id="pick-solo" aria-pressed="false">
+        <span class="choice-kicker">Alene</span>
+        <span class="choice-title">Én spiller</span>
+        <span class="choice-text">Computeren lægger et punkt. Du finder en linje gennem det.</span>
+      </button>
+      <button type="button" class="choice" id="pick-multi" aria-pressed="false">
+        <span class="choice-kicker">Samme skærm</span>
+        <span class="choice-title">Flere spillere</span>
+        <span class="choice-text">I lægger punkter for hinanden og skyder på skift.</span>
+      </button>
+    </div>
+
+    <p class="learn-entry"><button type="button" class="learn-link" id="open-learn">Sådan virker linjen</button></p>
+
+    <form id="solo-form" class="setup" hidden>
+      <label class="field">
+        <span class="field-label">Dit navn</span>
+        <input id="solo-name" type="text" maxlength="20" value="Spiller 1" autocomplete="off">
+      </label>
+      <button class="btn" type="submit">Start spil</button>
+    </form>
+
+    <form id="multi-form" class="setup" hidden>
+      <div class="count-row">
+        <span class="field-label">Antal spillere</span>
+        <div class="count-picker" role="group" aria-label="Antal spillere">
+          <button type="button" data-count="2" aria-pressed="true">2</button>
+          <button type="button" data-count="3" aria-pressed="false">3</button>
+          <button type="button" data-count="4" aria-pressed="false">4</button>
+        </div>
+      </div>
+      <div class="name-grid">
+        <div class="name-row">
+          <label class="field">
+            <span class="field-label"><span class="dot" style="background:#b84a2a"></span>Navn</span>
+            <input type="text" maxlength="20" value="Spiller 1" autocomplete="off">
+          </label>
+        </div>
+        <div class="name-row">
+          <label class="field">
+            <span class="field-label"><span class="dot" style="background:#1d6a72"></span>Navn</span>
+            <input type="text" maxlength="20" value="Spiller 2" autocomplete="off">
+          </label>
+        </div>
+        <div class="name-row" hidden>
+          <label class="field">
+            <span class="field-label"><span class="dot" style="background:#2a4f8f"></span>Navn</span>
+            <input type="text" maxlength="20" value="Spiller 3" autocomplete="off">
+          </label>
+        </div>
+        <div class="name-row" hidden>
+          <label class="field">
+            <span class="field-label"><span class="dot" style="background:#6a5420"></span>Navn</span>
+            <input type="text" maxlength="20" value="Spiller 4" autocomplete="off">
+          </label>
+        </div>
+      </div>
+      <button class="btn" type="submit">Start spil</button>
+    </form>
+
+    <details class="rules" open>
+      <summary>Regler</summary>
+      <div class="rules-body">
+        <p>Du skyder et punkt med en lineær funktion <strong>f(x) = ax + b</strong>. Skuddet rammer, hvis punktets y-værdi passer med a·x + b, med en absolut margen på 0,02. Det er midten af mærket, der tæller.</p>
+        <p>Der går uendeligt mange rette linjer gennem ét punkt. Spillet siger aldrig, hvilken a eller b der er den rigtige.</p>
+        <p>Først til 10 point vinder.</p>
+        <p><strong>Én spiller.</strong> Computeren lægger et punkt med hele koordinater. x er fra 1 til 10, og y er fra 0 til 10. Rammer du, får du 1 point og et nyt punkt. Rammer du forbi, tegnes linjen, og du må prøve igen på samme punkt.</p>
+        <p><strong>Flere spillere.</strong> I lægger på skift hver jeres punkt på et ledigt gitterpunkt ved samme skærm. På din tur skyder du ét af modstandernes punkter.</p>
+        <ul>
+          <li>Ramt: du får 1 point, og den ramte lægger straks et nyt punkt. Derefter er det næste spillers tur.</li>
+          <li>Forbi: ingen point, og turen går videre. Kun det seneste skud bliver stående.</li>
+          <li>En runde er ét skud fra hver spiller. Når nogen når 10, skyder de andre runden færdig. Bagefter vinder den, der alene har flest point, hvis det er mindst 10. Står flere lige øverst, spilles en runde mere.</li>
+        </ul>
+        <p>Punkter på y-aksen (x = 0) bruges ikke, fordi enhver linje med den rigtige b ville ramme dem.</p>
+      </div>
+    </details>
+  </section>
+
+  <section id="screen-learn" hidden>
+    <div class="learn-top">
+      <button type="button" class="text-btn" id="learn-back">Til forsiden</button>
+      <h2>Sådan virker linjen</h2>
+    </div>
+    <div class="learn-copy">
+      <p>En lineær funktion er en ret linje, <strong>f(x) = ax + b</strong>.</p>
+      <p><strong>a</strong> er hældningen: hvor meget y ændrer sig, når x vokser med 1. <strong>b</strong> er der, hvor linjen skærer y-aksen.</p>
+      <p>For eksempel går <strong>f(x) = 2x + 1</strong> gennem (0, 1) og stiger 2 for hvert skridt til højre.</p>
+    </div>
+    <div class="learn-stage" id="learn-wrap">
+      <canvas id="learn-board" width="640" height="640" aria-label="Koordinatsystem til at prøve en linje"></canvas>
+    </div>
+    <p id="learn-preview" class="preview">f(x) = 2x + 1</p>
+    <div class="learn-controls">
+      <div class="learn-row">
+        <span class="field-label">a <span class="field-help">hældning</span></span>
+        <input id="learn-a" type="text" inputmode="decimal" enterkeyhint="done" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="24" value="2" aria-label="a, hældning">
+        <button type="button" class="sign-btn" id="learn-sign-a" aria-label="Skift fortegn for a">−</button>
+        <input id="learn-slider-a" type="range" min="-5" max="5" step="0.5" value="2" aria-label="Skyder for hældning a">
+      </div>
+      <div class="learn-row">
+        <span class="field-label">b <span class="field-help">skæring</span></span>
+        <input id="learn-b" type="text" inputmode="decimal" enterkeyhint="done" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="24" value="1" aria-label="b, skæring med y-aksen">
+        <button type="button" class="sign-btn" id="learn-sign-b" aria-label="Skift fortegn for b">−</button>
+        <input id="learn-slider-b" type="range" min="-5" max="5" step="0.5" value="1" aria-label="Skyder for skæring b">
+      </div>
+      <p id="learn-note" class="fine" hidden></p>
+    </div>
+  </section>
+
+  <section id="screen-game" hidden>
+    <div class="play">
+      <header class="scorebar">
+        <div id="scoreboard"></div>
+        <p id="round-label"></p>
+        <details class="rules-pop">
+          <summary>Regler</summary>
+          <div class="rules-card">
+            <p>Rammer hvis |y − (ax + b)| ≤ 0,02. Ingen facit. Énspiller: prøv igen på samme punkt. Flerspiller: turen går videre ved forbi, og den ramte lægger et nyt punkt. Vinder kåres først efter runden, og kun hvis én spiller alene har flest point og mindst 10.</p>
+          </div>
+        </details>
+        <button type="button" class="text-btn" id="forfra">Start forfra</button>
+      </header>
+      <div class="board-wrap" id="board-wrap">
+        <canvas id="board" width="640" height="640" aria-label="Koordinatsystem fra 0 til 10"></canvas>
+        <div class="board-overlay">
+          <p id="readout" class="readout" hidden></p>
+          <p id="banner" class="status info"></p>
+          <p id="result" class="result info" hidden></p>
+          <div id="target-block" class="targets" hidden></div>
+          <p id="place-error" class="error" hidden></p>
+          <p id="board-hint" class="hint" hidden></p>
+        </div>
+        <div id="win-card" class="win-card" hidden>
+          <p class="eyebrow">Slut</p>
+          <h2 id="win-title"></h2>
+          <p id="win-text"></p>
+          <ol id="win-scores"></ol>
+          <div class="win-actions">
+            <button type="button" class="btn" id="again">Spil igen</button>
+            <button type="button" class="btn secondary" id="to-start">Til forsiden</button>
+          </div>
+        </div>
+      </div>
+      <form id="shot-form" class="shot-sheet" hidden>
+        <div class="shot-line">
+          <label class="field">
+            <span class="field-label">a <span class="field-help">hældning</span></span>
+            <span class="coef-row">
+              <input id="coef-a" type="text" inputmode="decimal" enterkeyhint="done" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="24" placeholder="f.eks. 2" aria-label="a, hældning" aria-describedby="form-error preview">
+              <button type="button" class="sign-btn" id="sign-a" aria-label="Skift fortegn for a">−</button>
+            </span>
+          </label>
+          <label class="field">
+            <span class="field-label">b <span class="field-help">skæring</span></span>
+            <span class="coef-row">
+              <input id="coef-b" type="text" inputmode="decimal" enterkeyhint="done" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="24" placeholder="f.eks. -1" aria-label="b, skæring med y-aksen" aria-describedby="form-error preview">
+              <button type="button" class="sign-btn" id="sign-b" aria-label="Skift fortegn for b">−</button>
+            </span>
+          </label>
+          <p id="preview" class="preview">f(x) = …</p>
+          <button id="shoot" class="btn" type="submit">Skyd</button>
+        </div>
+        <p id="form-error" class="error" role="alert" hidden></p>
+      </form>
+    </div>
+  </section>
+</div>
+<script>
+(function () {
+  'use strict';
+
+  // isHit, canPlacePoint og winnerAfterRound er duplikeret i hit-test.mjs.
+  var TOLERANCE = 0.02;
+
+  function isHit(x, y, a, b, tolerance) {
+    var limit = tolerance == null ? TOLERANCE : tolerance;
+    return Math.abs(y - (a * x + b)) <= limit + 1e-9;
+  }
+
+  function canPlacePoint(x, y) {
+    if (!Number.isInteger(x) || !Number.isInteger(y)) return false;
+    if (x < 1 || x > 10) return false;
+    if (y < 0 || y > 10) return false;
+    return true;
+  }
+
+  function winnerAfterRound(scores, goal) {
+    var limit = goal == null ? 10 : goal;
+    var max = -Infinity;
+    var i;
+    for (i = 0; i < scores.length; i++) {
+      if (scores[i] > max) max = scores[i];
+    }
+    if (!(max >= limit)) return -1;
+    var leader = -1;
+    for (i = 0; i < scores.length; i++) {
+      if (scores[i] === max) {
+        if (leader !== -1) return -1;
+        leader = i;
+      }
+    }
+    return leader;
+  }
+
+  function parseNumber(raw) {
+    if (typeof raw !== 'string') return null;
+    var t = raw.trim().replace(/\s+/g, '').replace(/,/g, '.').replace(/[−–—]/g, '-');
+    if (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(t)) return null;
+    var n = Number(t);
+    if (!Number.isFinite(n)) return null;
+    return n === 0 ? 0 : n;
+  }
+
+  function formatNum(n) {
+    if (!Number.isFinite(n)) return '…';
+    var rounded = Math.round(n * 1e6) / 1e6;
+    if (rounded === 0) return '0';
+    var abs = Math.abs(rounded);
+    if (abs >= 1e6 || abs < 1e-4) return rounded.toExponential(2).replace('.', ',');
+    var s = String(rounded);
+    if (/e/i.test(s)) s = rounded.toFixed(6).replace(/0+$/, '').replace(/\.$/, '');
+    return s.replace('.', ',');
+  }
+
+  function formatFunction(a, b) {
+    if (a === 0) return 'f(x) = ' + formatNum(b);
+    var body;
+    if (a === 1) body = 'x';
+    else if (a === -1) body = '−x';
+    else if (a < 0) body = '−' + formatNum(Math.abs(a)) + 'x';
+    else body = formatNum(a) + 'x';
+    if (b === 0) return 'f(x) = ' + body;
+    if (b > 0) return 'f(x) = ' + body + ' + ' + formatNum(b);
+    return 'f(x) = ' + body + ' − ' + formatNum(Math.abs(b));
+  }
+
+  function clipLineToBoard(a, b) {
+    var xmin = 0, xmax = 10, ymin = 0, ymax = 10;
+    var pts = [];
+    function add(x, y) {
+      if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+      if (x < xmin - 1e-7 || x > xmax + 1e-7 || y < ymin - 1e-7 || y > ymax + 1e-7) return;
+      var cx = Math.min(xmax, Math.max(xmin, x));
+      var cy = Math.min(ymax, Math.max(ymin, y));
+      for (var i = 0; i < pts.length; i++) {
+        if (Math.abs(pts[i][0] - cx) < 1e-6 && Math.abs(pts[i][1] - cy) < 1e-6) return;
+      }
+      pts.push([cx, cy]);
+    }
+    add(xmin, a * xmin + b);
+    add(xmax, a * xmax + b);
+    if (Math.abs(a) > 1e-12) {
+      add((ymin - b) / a, ymin);
+      add((ymax - b) / a, ymax);
+    }
+    if (pts.length < 2) return null;
+    if (pts.length === 2) return pts;
+    var bestI = 0, bestJ = 1, bestD = -1;
+    for (var i = 0; i < pts.length; i++) {
+      for (var j = i + 1; j < pts.length; j++) {
+        var dx = pts[i][0] - pts[j][0];
+        var dy = pts[i][1] - pts[j][1];
+        var d = dx * dx + dy * dy;
+        if (d > bestD) { bestD = d; bestI = i; bestJ = j; }
+      }
+    }
+    return [pts[bestI], pts[bestJ]];
+  }
+
+  var COLORS = ['#b84a2a', '#1d6a72', '#2a4f8f', '#6a5420'];
+  var TARGET_COLOR = '#2a4f8f';
+  var PAD_L = 52, PAD_R = 36, PAD_T = 34, PAD_B = 44;
+  var SHOT_MS = 220;
+  var CELEBRATE_MS = 700;
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var startScreen = document.getElementById('screen-start');
+  var gameScreen = document.getElementById('screen-game');
+  var pickSolo = document.getElementById('pick-solo');
+  var pickMulti = document.getElementById('pick-multi');
+  var soloForm = document.getElementById('solo-form');
+  var multiForm = document.getElementById('multi-form');
+  var soloNameInput = document.getElementById('solo-name');
+  var nameRows = multiForm.querySelectorAll('.name-row');
+  var countButtons = multiForm.querySelectorAll('[data-count]');
+  var canvas = document.getElementById('board');
+  var ctx = canvas.getContext('2d');
+  var boardWrap = document.getElementById('board-wrap');
+  var boardHintEl = document.getElementById('board-hint');
+  var roundLabel = document.getElementById('round-label');
+  var scoreboard = document.getElementById('scoreboard');
+  var resultEl = document.getElementById('result');
+  var bannerEl = document.getElementById('banner');
+  var readoutEl = document.getElementById('readout');
+  var targetBlock = document.getElementById('target-block');
+  var placeErrorEl = document.getElementById('place-error');
+  var formEl = document.getElementById('shot-form');
+  var coefA = document.getElementById('coef-a');
+  var coefB = document.getElementById('coef-b');
+  var signA = document.getElementById('sign-a');
+  var signB = document.getElementById('sign-b');
+  function toggleSign(input) {
+    var v = input.value.replace(/\s/g, '').replace(/\u2212/g, '-');
+    if (!v || v === '+') input.value = '-';
+    else if (v.charAt(0) === '-') input.value = v.slice(1);
+    else if (v.charAt(0) === '+') input.value = '-' + v.slice(1);
+    else input.value = '-' + v;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.focus();
+  }
+  var previewEl = document.getElementById('preview');
+  var formErrorEl = document.getElementById('form-error');
+  var shootBtn = document.getElementById('shoot');
+  var winCard = document.getElementById('win-card');
+  var winTitle = document.getElementById('win-title');
+  var winText = document.getElementById('win-text');
+  var winScores = document.getElementById('win-scores');
+  var againBtn = document.getElementById('again');
+  var toStartBtn = document.getElementById('to-start');
+  var forfraBtn = document.getElementById('forfra');
+  var learnScreen = document.getElementById('screen-learn');
+  var learnCanvas = document.getElementById('learn-board');
+  var learnCtx = learnCanvas.getContext('2d');
+  var learnWrap = document.getElementById('learn-wrap');
+  var learnA = document.getElementById('learn-a');
+  var learnB = document.getElementById('learn-b');
+  var learnSignA = document.getElementById('learn-sign-a');
+  var learnSignB = document.getElementById('learn-sign-b');
+  var learnSliderA = document.getElementById('learn-slider-a');
+  var learnSliderB = document.getElementById('learn-slider-b');
+  var learnPreview = document.getElementById('learn-preview');
+  var learnNote = document.getElementById('learn-note');
+  var openLearnBtn = document.getElementById('open-learn');
+  var learnBackBtn = document.getElementById('learn-back');
+  var learnView = 0;
+
+  var state = {
+    mode: 'solo',
+    phase: 'start',
+    players: [],
+    playerCount: 2,
+    turn: 0,
+    setupIndex: 0,
+    replaceIndex: null,
+    shotsThisRound: 0,
+    targetIndex: null,
+    soloPoint: null,
+    lastShot: null,
+    hitLines: [],
+    sheetOpen: false,
+    flash: null,
+    banner: '',
+    bannerKind: 'info',
+    result: '',
+    resultKind: 'info',
+    placeError: '',
+    formError: '',
+    boardHint: '',
+    hover: null,
+    hoverText: '',
+    locked: false,
+    winner: null
+  };
+
+  var shotToken = 0;
+  var seenScores = new Map();
+  var viewW = 640;
+  var viewH = 640;
+
+  function motionMs(ms) { return reduceMotion ? 0 : ms; }
+
+  function invalidate() {
+    shotToken += 1;
+    state.locked = false;
+  }
+
+  function cleanName(raw, fallback) {
+    var t = String(raw || '').replace(/\s+/g, ' ').trim();
+    return (t || fallback).slice(0, 20);
+  }
+
+  function shortName(name) {
+    if (name.length <= 12) return name;
+    return name.slice(0, 11) + '…';
+  }
+
+  function occupied(x, y) {
+    for (var i = 0; i < state.players.length; i++) {
+      var p = state.players[i].point;
+      if (p && p.x === x && p.y === y) return true;
+    }
+    return false;
+  }
+
+  function randomTarget() {
+    return {
+      x: 1 + Math.floor(Math.random() * 10),
+      y: Math.floor(Math.random() * 11)
+    };
+  }
+
+  function placeComputerPoint() {
+    var next = randomTarget();
+    for (var i = 0; i < 30; i++) {
+      if (!state.soloPoint || next.x !== state.soloPoint.x || next.y !== state.soloPoint.y) break;
+      next = randomTarget();
+    }
+    state.soloPoint = next;
+  }
+
+  function toCanvas(x, y, w, h) {
+    var plotW = w - PAD_L - PAD_R;
+    var plotH = h - PAD_T - PAD_B;
+    return [
+      PAD_L + (x / 10) * plotW,
+      PAD_T + (1 - y / 10) * plotH
+    ];
+  }
+
+  function fromCanvas(px, py, w, h) {
+    var plotW = w - PAD_L - PAD_R;
+    var plotH = h - PAD_T - PAD_B;
+    return [
+      ((px - PAD_L) / plotW) * 10,
+      (1 - (py - PAD_T) / plotH) * 10
+    ];
+  }
+
+  function snap(px, py, w, h) {
+    if (w < 20 || h < 20) return null;
+    var pair = fromCanvas(px, py, w, h);
+    var x = pair[0];
+    var y = pair[1];
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+    var rx = Math.round(x);
+    var ry = Math.round(y);
+    if (Math.abs(x - rx) > 0.5 + 1e-9 || Math.abs(y - ry) > 0.5 + 1e-9) return null;
+    return { x: rx, y: ry };
+  }
+
+  function opponentIndexes() {
+    var list = [];
+    for (var i = 0; i < state.players.length; i++) {
+      if (i === state.turn) continue;
+      if (!state.players[i].point) continue;
+      list.push(i);
+    }
+    return list;
+  }
+
+  function currentTarget() {
+    if (state.mode === 'solo') {
+      if (!state.soloPoint) return null;
+      return { x: state.soloPoint.x, y: state.soloPoint.y, owner: null };
+    }
+    if (state.targetIndex == null) return null;
+    var p = state.players[state.targetIndex];
+    if (!p || !p.point) return null;
+    if (state.targetIndex === state.turn) return null;
+    return { x: p.point.x, y: p.point.y, owner: state.targetIndex };
+  }
+
+  function activeIndex() {
+    if (state.phase === 'setup') return state.setupIndex;
+    if (state.phase === 'replace') return state.replaceIndex;
+    if (state.phase === 'win') return state.winner;
+    if (state.phase === 'aim') return state.turn;
+    return -1;
+  }
+
+  function roundText() {
+    if (!state.players.length) return '';
+    if (state.mode === 'solo') return 'Først til 10 point';
+    if (state.phase === 'setup') return 'Opsætning · punkt ' + (state.setupIndex + 1) + ' af ' + state.players.length;
+    if (state.phase === 'replace') return 'Læg et nyt punkt';
+    if (state.phase === 'win') return 'Spillet er slut';
+    return 'Skud ' + (state.shotsThisRound + 1) + ' af ' + state.players.length + ' i denne runde';
+  }
+
+  function roleText(i) {
+    if (i !== activeIndex()) return '';
+    if (state.phase === 'setup') return 'lægger punkt';
+    if (state.phase === 'replace') return 'lægger nyt punkt';
+    if (state.phase === 'aim') return 'skyder';
+    if (state.phase === 'win') return 'vinder';
+    return '';
+  }
+
+  function roundRect(x, y, w, h, r) {
+    var rr = Math.min(r, w / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + rr, y);
+    ctx.arcTo(x + w, y, x + w, y + h, rr);
+    ctx.arcTo(x + w, y + h, x, y + h, rr);
+    ctx.arcTo(x, y + h, x, y, rr);
+    ctx.arcTo(x, y, x + w, y, rr);
+    ctx.closePath();
+  }
+
+  function arrowHead(g, x, y, dx, dy) {
+    var len = 8;
+    g.beginPath();
+    g.moveTo(x, y);
+    g.lineTo(x - dx * len - dy * 4, y - dy * len + dx * 4);
+    g.lineTo(x - dx * len + dy * 4, y - dy * len - dx * 4);
+    g.closePath();
+    g.fill();
+  }
+
+  function paintAxes(g, w, h) {
+    g.clearRect(0, 0, w, h);
+    g.fillStyle = '#fffdf8';
+    g.fillRect(0, 0, w, h);
+    g.globalAlpha = 1;
+    g.setLineDash([]);
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.lineWidth = 1;
+    g.strokeStyle = '#efe4d2';
+    g.beginPath();
+    for (var i = 0; i <= 10; i++) {
+      var ax = toCanvas(i, 0, w, h);
+      var bx = toCanvas(i, 10, w, h);
+      g.moveTo(ax[0], ax[1]);
+      g.lineTo(bx[0], bx[1]);
+      var cy = toCanvas(0, i, w, h);
+      var dy = toCanvas(10, i, w, h);
+      g.moveTo(cy[0], cy[1]);
+      g.lineTo(dy[0], dy[1]);
+    }
+    g.stroke();
+    g.strokeStyle = '#2c241b';
+    g.lineWidth = 1.7;
+    g.beginPath();
+    var origin = toCanvas(0, 0, w, h);
+    var xEnd = toCanvas(10, 0, w, h);
+    var yEnd = toCanvas(0, 10, w, h);
+    g.moveTo(origin[0], origin[1]);
+    g.lineTo(xEnd[0], xEnd[1]);
+    g.moveTo(origin[0], origin[1]);
+    g.lineTo(yEnd[0], yEnd[1]);
+    g.stroke();
+    g.fillStyle = '#2c241b';
+    arrowHead(g, xEnd[0] + 11, xEnd[1], 1, 0);
+    arrowHead(g, yEnd[0], yEnd[1] - 11, 0, -1);
+    g.fillStyle = '#6f6458';
+    g.font = '12px system-ui, "Segoe UI", sans-serif';
+    g.textAlign = 'center';
+    g.textBaseline = 'top';
+    for (var xi = 1; xi <= 10; xi++) {
+      var xt = toCanvas(xi, 0, w, h);
+      g.fillText(String(xi), xt[0], xt[1] + 6);
+    }
+    g.textAlign = 'right';
+    g.textBaseline = 'middle';
+    for (var yi = 1; yi <= 10; yi++) {
+      var yt = toCanvas(0, yi, w, h);
+      g.fillText(String(yi), yt[0] - 7, yt[1]);
+    }
+    g.textAlign = 'right';
+    g.textBaseline = 'top';
+    g.fillText('0', origin[0] - 7, origin[1] + 5);
+    g.fillStyle = '#2c241b';
+    g.font = 'italic 15px system-ui, "Segoe UI", sans-serif';
+    g.textAlign = 'left';
+    g.textBaseline = 'middle';
+    g.fillText('x', xEnd[0] + 16, xEnd[1] + 14);
+    g.textAlign = 'right';
+    g.fillText('y', yEnd[0] - 8, yEnd[1] - 14);
+  }
+
+  function strokeBoardLine(g, a, b, color, w, h) {
+    var seg = clipLineToBoard(a, b);
+    if (!seg) return;
+    var p1 = toCanvas(seg[0][0], seg[0][1], w, h);
+    var p2 = toCanvas(seg[1][0], seg[1][1], w, h);
+    g.beginPath();
+    g.moveTo(p1[0], p1[1]);
+    g.lineTo(p2[0], p2[1]);
+    g.lineCap = 'round';
+    g.strokeStyle = 'rgba(255,253,248,0.95)';
+    g.lineWidth = 6;
+    g.stroke();
+    g.strokeStyle = color;
+    g.lineWidth = 2.6;
+    g.stroke();
+  }
+
+  function draw() {
+    var rect = canvas.getBoundingClientRect();
+    var w = rect.width || viewW;
+    var h = rect.height || viewH;
+    if (w < 8 || h < 8) return;
+    viewW = w;
+    viewH = h;
+    paintAxes(ctx, w, h);
+
+    if (state.phase === 'setup' || state.phase === 'replace') {
+      for (var gx = 1; gx <= 10; gx++) {
+        for (var gy = 0; gy <= 10; gy++) {
+          if (occupied(gx, gy)) continue;
+          var g = toCanvas(gx, gy, w, h);
+          ctx.beginPath();
+          ctx.arc(g[0], g[1], 2.4, 0, Math.PI * 2);
+          ctx.fillStyle = '#e4d5c0';
+          ctx.fill();
+        }
+      }
+      if (state.hover && canPlacePoint(state.hover.x, state.hover.y) && !occupied(state.hover.x, state.hover.y)) {
+        var hv = toCanvas(state.hover.x, state.hover.y, w, h);
+        var actor = activeIndex();
+        var col = actor >= 0 ? state.players[actor].color : TARGET_COLOR;
+        ctx.beginPath();
+        ctx.arc(hv[0], hv[1], 11, 0, Math.PI * 2);
+        ctx.fillStyle = col;
+        ctx.globalAlpha = 0.28;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+    }
+
+    for (var li = 0; li < state.hitLines.length; li++) {
+      strokeBoardLine(ctx, state.hitLines[li].a, state.hitLines[li].b, state.hitLines[li].color, w, h);
+    }
+    if (state.lastShot && !state.lastShot.hit) {
+      strokeBoardLine(ctx, state.lastShot.a, state.lastShot.b, state.lastShot.color, w, h);
+    }
+
+    if (state.phase === 'replace' && state.lastShot && state.lastShot.hit) {
+      var ghost = toCanvas(state.lastShot.x, state.lastShot.y, w, h);
+      ctx.beginPath();
+      ctx.arc(ghost[0], ghost[1], 9, 0, Math.PI * 2);
+      ctx.setLineDash([3, 3]);
+      ctx.strokeStyle = state.lastShot.color;
+      ctx.lineWidth = 1.6;
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    var markers = [];
+    if (state.mode === 'solo' && state.soloPoint) {
+      markers.push({
+        x: state.soloPoint.x,
+        y: state.soloPoint.y,
+        color: TARGET_COLOR,
+        name: 'Mål',
+        hi: state.phase === 'aim'
+      });
+    }
+    for (var pi = 0; pi < state.players.length; pi++) {
+      var pl = state.players[pi];
+      if (!pl.point) continue;
+      markers.push({
+        x: pl.point.x,
+        y: pl.point.y,
+        color: pl.color,
+        name: pl.name,
+        hi: state.phase === 'aim' && state.mode === 'multi' && pi === state.targetIndex
+      });
+    }
+    for (var m = 0; m < markers.length; m++) drawDot(markers[m], w, h);
+    labelBoxes = [];
+    for (var n = 0; n < markers.length; n++) drawLabel(markers[n], w, h);
+    drawFlash(w, h);
+  }
+
+  function drawDot(marker, w, h) {
+    var pt = toCanvas(marker.x, marker.y, w, h);
+    if (marker.hi) {
+      ctx.beginPath();
+      ctx.arc(pt[0], pt[1], 16, 0, Math.PI * 2);
+      ctx.strokeStyle = marker.color;
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([3, 3]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    ctx.beginPath();
+    ctx.arc(pt[0], pt[1], 9, 0, Math.PI * 2);
+    ctx.fillStyle = marker.color;
+    ctx.fill();
+    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = '#fffdf8';
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(pt[0], pt[1], 2.2, 0, Math.PI * 2);
+    ctx.fillStyle = '#fffdf8';
+    ctx.fill();
+  }
+
+  var labelBoxes = [];
+
+  function boxesOverlap(a, b, pad) {
+    return !(a.x + a.w + pad < b.x || b.x + b.w + pad < a.x || a.y + a.h + pad < b.y || b.y + b.h + pad < a.y);
+  }
+
+  function drawLabel(marker, w, h) {
+    var pt = toCanvas(marker.x, marker.y, w, h);
+    var narrow = w < 520;
+    var label = narrow
+      ? shortName(marker.name)
+      : shortName(marker.name) + ' (' + marker.x + ', ' + marker.y + ')';
+    ctx.font = (narrow ? '600 11px ' : '600 12.5px ') + 'system-ui, "Segoe UI", sans-serif';
+    var tw = ctx.measureText(label).width;
+    var boxW = tw + (narrow ? 8 : 12);
+    var boxH = narrow ? 16 : 20;
+    var minLeft = Math.max(4, PAD_L - (narrow ? 18 : 8));
+    var left = pt[0] - boxW / 2;
+    left = Math.max(minLeft, Math.min(w - boxW - 4, left));
+    var candidates = [
+      pt[1] - 14 - boxH,
+      pt[1] + 14,
+      pt[1] - 14 - boxH - (boxH + 4),
+      pt[1] + 14 + boxH + 4,
+      pt[1] - boxH / 2
+    ];
+    var top = Math.max(3, Math.min(h - boxH - 3, candidates[0]));
+    var chosen = null;
+    for (var c = 0; c < candidates.length; c++) {
+      var tryTop = Math.max(3, Math.min(h - boxH - 3, candidates[c]));
+      var box = { x: left, y: tryTop, w: boxW, h: boxH };
+      var hit = false;
+      for (var k = 0; k < labelBoxes.length; k++) {
+        if (boxesOverlap(box, labelBoxes[k], 2)) hit = true;
+      }
+      if (!hit) { chosen = box; break; }
+    }
+    if (!chosen) chosen = { x: left, y: top, w: boxW, h: boxH };
+    labelBoxes.push(chosen);
+    roundRect(chosen.x, chosen.y, boxW, boxH, 7);
+    ctx.fillStyle = 'rgba(255,253,248,0.94)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(44,36,27,0.1)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.fillStyle = '#2c241b';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, chosen.x + boxW / 2, chosen.y + boxH / 2 + 0.5);
+  }
+
+  function drawFlash(w, h) {
+    if (!state.flash || reduceMotion) return;
+    var age = performance.now() - state.flash.t;
+    if (age < 0 || age > 680) return;
+    var k = age / 680;
+    var pt = toCanvas(state.flash.x, state.flash.y, w, h);
+    ctx.beginPath();
+    ctx.arc(pt[0], pt[1], 10 + k * 26, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(20, 97, 60, ' + (1 - k) + ')';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([]);
+    ctx.stroke();
+  }
+
+  function animateFlash() {
+    if (reduceMotion || !state.flash) return;
+    var stamp = state.flash.t;
+    function frame() {
+      draw();
+      if (state.flash && state.flash.t === stamp && performance.now() - stamp < 700) {
+        requestAnimationFrame(frame);
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function resize() {
+    var rect = boardWrap.getBoundingClientRect();
+    var notes = boardWrap.querySelector('.board-overlay');
+    var notesH = notes ? notes.offsetHeight : 0;
+    var size = Math.floor(Math.min(rect.width - 8, rect.height - notesH - 8));
+    if (size < 8) return;
+    canvas.style.width = size + 'px';
+    canvas.style.height = size + 'px';
+    viewW = size;
+    viewH = size;
+    var dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+    canvas.width = Math.max(1, Math.round(size * dpr));
+    canvas.height = Math.max(1, Math.round(size * dpr));
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    draw();
+  }
+
+  function clampSlider(n) {
+    if (n < -5) return -5;
+    if (n > 5) return 5;
+    return n;
+  }
+
+  function drawLearn() {
+    var w = learnView;
+    var h = learnView;
+    if (w < 8 || h < 8) return;
+    paintAxes(learnCtx, w, h);
+    var a = parseNumber(learnA.value);
+    var b = parseNumber(learnB.value);
+    if (a == null || b == null) return;
+    strokeBoardLine(learnCtx, a, b, '#b84a2a', w, h);
+  }
+
+  function resizeLearn() {
+    if (learnScreen.hidden) return;
+    var rect = learnWrap.getBoundingClientRect();
+    var size = Math.floor(Math.min(rect.width, rect.height));
+    if (size < 8) return;
+    learnView = size;
+    learnCanvas.style.width = size + 'px';
+    learnCanvas.style.height = size + 'px';
+    var dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+    learnCanvas.width = Math.max(1, Math.round(size * dpr));
+    learnCanvas.height = Math.max(1, Math.round(size * dpr));
+    learnCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    drawLearn();
+  }
+
+  function syncLearnFromInputs() {
+    var a = parseNumber(learnA.value);
+    var b = parseNumber(learnB.value);
+    if (a != null) learnSliderA.value = String(clampSlider(a));
+    if (b != null) learnSliderB.value = String(clampSlider(b));
+    learnPreview.textContent = (a == null || b == null) ? 'f(x) = …' : formatFunction(a, b);
+    var bits = [];
+    if (a != null && (a < -5 || a > 5)) bits.push('a er uden for skyderen, men linjen tegnes alligevel.');
+    if (b != null && (b < -5 || b > 5)) bits.push('b er uden for skyderen, men linjen tegnes alligevel.');
+    learnNote.hidden = bits.length === 0;
+    learnNote.textContent = bits.join(' ');
+    drawLearn();
+  }
+
+  function syncLearnFromSliders() {
+    learnA.value = formatNum(Number(learnSliderA.value));
+    learnB.value = formatNum(Number(learnSliderB.value));
+    syncLearnFromInputs();
+  }
+
+  function openLearn() {
+    gameScreen.hidden = true;
+    startScreen.hidden = true;
+    learnScreen.hidden = false;
+    syncLearnFromInputs();
+    requestAnimationFrame(resizeLearn);
+  }
+
+  function updatePreview() {
+    var a = parseNumber(coefA.value);
+    var b = parseNumber(coefB.value);
+    previewEl.textContent = (a == null || b == null) ? 'f(x) = …' : formatFunction(a, b);
+  }
+
+  function renderScores() {
+    scoreboard.replaceChildren();
+    for (var i = 0; i < state.players.length; i++) {
+      var p = state.players[i];
+      var row = document.createElement('div');
+      row.className = 'score-row' + (i === activeIndex() ? ' is-active' : '');
+      row.style.setProperty('--p', p.color);
+      row.dataset.name = p.name;
+      row.dataset.score = String(p.score);
+      var sw = document.createElement('span');
+      sw.className = 'swatch';
+      var who = document.createElement('span');
+      who.className = 'who';
+      var nameBox = document.createElement('span');
+      nameBox.className = 'pname';
+      nameBox.textContent = p.name;
+      who.appendChild(nameBox);
+      var role = roleText(i);
+      if (role) {
+        var roleEl = document.createElement('span');
+        roleEl.className = 'role';
+        roleEl.textContent = role;
+        who.appendChild(roleEl);
+      }
+      var scoreEl = document.createElement('span');
+      scoreEl.className = 'pscore';
+      var prev = seenScores.get(i);
+      if (prev != null && p.score > prev) scoreEl.classList.add('bump');
+      seenScores.set(i, p.score);
+      var num = document.createElement('span');
+      num.textContent = String(p.score);
+      var of = document.createElement('span');
+      of.className = 'of';
+      of.textContent = '/10';
+      scoreEl.appendChild(num);
+      scoreEl.appendChild(of);
+      row.appendChild(sw);
+      row.appendChild(who);
+      row.appendChild(scoreEl);
+      scoreboard.appendChild(row);
+    }
+  }
+
+  function renderTargets() {
+    var many = state.phase === 'aim' && state.mode === 'multi' && opponentIndexes().length > 1;
+    targetBlock.hidden = !many;
+    targetBlock.replaceChildren();
+    if (!many) return;
+    var opps = opponentIndexes();
+    for (var k = 0; k < opps.length; k++) {
+      var i = opps[k];
+      var p = state.players[i];
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'target-btn';
+      btn.style.setProperty('--p', p.color);
+      btn.setAttribute('aria-pressed', state.targetIndex === i ? 'true' : 'false');
+      btn.textContent = p.name + ' (' + p.point.x + ', ' + p.point.y + ')';
+      btn.disabled = state.locked;
+      (function (index) {
+        btn.addEventListener('click', function () {
+          if (state.locked || state.phase !== 'aim') return;
+          state.targetIndex = index;
+          state.formError = '';
+          renderUI();
+        });
+      })(i);
+      targetBlock.appendChild(btn);
+    }
+  }
+
+  function renderReadout() {
+    if (state.phase === 'win' || state.phase === 'setup' || state.phase === 'replace') {
+      readoutEl.hidden = true;
+      readoutEl.textContent = '';
+      return;
+    }
+    if (state.mode === 'solo' && state.soloPoint) {
+      readoutEl.hidden = false;
+      readoutEl.textContent = 'Mål · (' + state.soloPoint.x + ', ' + state.soloPoint.y + ')';
+      return;
+    }
+    if (state.mode === 'multi' && state.phase === 'aim') {
+      readoutEl.hidden = false;
+      if (state.targetIndex == null || !state.players[state.targetIndex] || !state.players[state.targetIndex].point) {
+        readoutEl.textContent = 'Vælg hvilket punkt du skyder efter';
+      } else {
+        var p = state.players[state.targetIndex];
+        readoutEl.textContent = 'Skyder efter ' + p.name + ' · (' + p.point.x + ', ' + p.point.y + ')';
+      }
+      return;
+    }
+    readoutEl.hidden = true;
+  }
+
+  function renderWin() {
+    var w = state.players[state.winner];
+    winTitle.textContent = 'Tillykke, ' + w.name + '!';
+    if (state.mode === 'solo') winText.textContent = 'Du nåede 10 point.';
+    else winText.textContent = w.name + ' vinder med ' + w.score + ' point.';
+    winScores.replaceChildren();
+    var ranked = state.players.map(function (p, i) { return { p: p, i: i }; });
+    ranked.sort(function (a, b) { return b.p.score - a.p.score || a.i - b.i; });
+    for (var i = 0; i < ranked.length; i++) {
+      var li = document.createElement('li');
+      li.textContent = ranked[i].p.name + ': ' + ranked[i].p.score;
+      winScores.appendChild(li);
+    }
+  }
+
+  function renderUI() {
+    var placing = state.phase === 'setup' || state.phase === 'replace';
+    canvas.classList.toggle('is-placing', placing);
+    canvas.classList.toggle('is-aim', state.phase === 'aim');
+    if (state.phase !== 'aim') state.sheetOpen = false;
+    roundLabel.textContent = roundText();
+    renderScores();
+    var showResult = !!state.result && state.phase !== 'win' && state.phase !== 'setup';
+    resultEl.hidden = !showResult;
+    resultEl.textContent = state.result || '';
+    resultEl.className = 'result ' + (state.resultKind || 'info');
+    bannerEl.hidden = state.phase === 'win' || !state.banner;
+    bannerEl.textContent = state.banner || '';
+    bannerEl.className = 'status ' + (state.bannerKind || 'info');
+    renderReadout();
+    renderTargets();
+    placeErrorEl.hidden = !state.placeError;
+    placeErrorEl.textContent = state.placeError || '';
+    formEl.hidden = !(state.phase === 'aim' && state.sheetOpen);
+    var lockInputs = state.locked || state.phase !== 'aim';
+    coefA.disabled = lockInputs;
+    coefB.disabled = lockInputs;
+    signA.disabled = lockInputs;
+    signB.disabled = lockInputs;
+    shootBtn.disabled = lockInputs;
+    formErrorEl.hidden = !state.formError;
+    formErrorEl.textContent = state.formError || '';
+    coefA.setAttribute('aria-invalid', state.formError ? 'true' : 'false');
+    coefB.setAttribute('aria-invalid', state.formError ? 'true' : 'false');
+    updatePreview();
+    winCard.hidden = state.phase !== 'win';
+    if (state.phase === 'win') renderWin();
+    forfraBtn.hidden = state.phase === 'win';
+    boardHintEl.hidden = !state.hoverText;
+    boardHintEl.textContent = state.hoverText || '';
+    if (state.phase === 'setup' || state.phase === 'replace') {
+      canvas.setAttribute('aria-label', 'Koordinatsystem. Klik for at lægge et punkt.');
+    } else if (state.phase === 'aim') {
+      canvas.setAttribute('aria-label', state.sheetOpen
+        ? 'Koordinatsystem. Tryk for at lukke a og b.'
+        : 'Koordinatsystem. Tryk for at åbne a og b.');
+    } else {
+      canvas.setAttribute('aria-label', 'Koordinatsystem fra 0 til 10.');
+    }
+  }
+
+  function showGame() {
+    startScreen.hidden = true;
+    learnScreen.hidden = true;
+    gameScreen.hidden = false;
+    renderUI();
+    requestAnimationFrame(function () { resize(); });
+  }
+
+  function toFront() {
+    invalidate();
+    state.phase = 'start';
+    state.flash = null;
+    state.sheetOpen = false;
+    gameScreen.hidden = true;
+    learnScreen.hidden = true;
+    startScreen.hidden = false;
+  }
+
+  function freshPlayer(name, color) {
+    return { name: name, color: color, score: 0, point: null };
+  }
+
+  function resetCommon() {
+    state.turn = 0;
+    state.setupIndex = 0;
+    state.replaceIndex = null;
+    state.shotsThisRound = 0;
+    state.targetIndex = null;
+    state.lastShot = null;
+    state.hitLines = [];
+    state.sheetOpen = false;
+    state.flash = null;
+    state.result = '';
+    state.resultKind = 'info';
+    state.placeError = '';
+    state.formError = '';
+    state.hover = null;
+    state.hoverText = '';
+    state.locked = false;
+    state.winner = null;
+    state.soloPoint = null;
+    coefA.value = '';
+    coefB.value = '';
+    seenScores.clear();
+  }
+
+  function startSolo() {
+    invalidate();
+    var name = cleanName(soloNameInput.value, 'Spiller 1');
+    state.mode = 'solo';
+    state.players = [freshPlayer(name, COLORS[0])];
+    resetCommon();
+    placeComputerPoint();
+    state.phase = 'aim';
+    state.banner = name + ', punktet er (' + state.soloPoint.x + ', ' + state.soloPoint.y + '). Tryk på koordinatsystemet for at skyde.';
+    state.bannerKind = 'info';
+    state.boardHint = 'Tryk på koordinatsystemet for at åbne a og b. En ramt linje bliver stående.';
+    showGame();
+  }
+
+  function startMulti() {
+    invalidate();
+    state.mode = 'multi';
+    state.players = [];
+    for (var i = 0; i < state.playerCount; i++) {
+      var input = nameRows[i].querySelector('input');
+      state.players.push(freshPlayer(cleanName(input.value, 'Spiller ' + (i + 1)), COLORS[i]));
+    }
+    resetCommon();
+    state.phase = 'setup';
+    state.banner = state.players[0].name + ', klik på et ledigt skæringspunkt. x fra 1 til 10, y fra 0 til 10.';
+    state.bannerKind = 'info';
+    state.boardHint = 'Klik på et ledigt skæringspunkt. x fra 1 til 10, y fra 0 til 10.';
+    showGame();
+  }
+
+  function playAgain() {
+    invalidate();
+    var mode = state.mode;
+    var players = state.players.map(function (p) {
+      return freshPlayer(p.name, p.color);
+    });
+    state.players = players;
+    resetCommon();
+    if (mode === 'solo') {
+      state.mode = 'solo';
+      placeComputerPoint();
+      state.phase = 'aim';
+      state.banner = players[0].name + ', punktet er (' + state.soloPoint.x + ', ' + state.soloPoint.y + '). Tryk på koordinatsystemet for at skyde.';
+      state.bannerKind = 'info';
+      state.boardHint = 'Tryk på koordinatsystemet for at åbne a og b. En ramt linje bliver stående.';
+      showGame();
+    } else {
+      state.mode = 'multi';
+      state.phase = 'setup';
+      state.banner = players[0].name + ', klik på et ledigt skæringspunkt. x fra 1 til 10, y fra 0 til 10.';
+      state.bannerKind = 'info';
+      state.boardHint = 'Klik på et ledigt skæringspunkt. x fra 1 til 10, y fra 0 til 10.';
+      showGame();
+    }
+  }
+
+  function beginTurn(extra) {
+    state.phase = 'aim';
+    state.replaceIndex = null;
+    state.placeError = '';
+    state.formError = '';
+    state.hover = null;
+    state.hoverText = '';
+    state.locked = false;
+    coefA.value = '';
+    coefB.value = '';
+    var opps = opponentIndexes();
+    state.targetIndex = opps.length === 1 ? opps[0] : null;
+    var name = state.players[state.turn].name;
+    var msg;
+    state.sheetOpen = false;
+    if (opps.length === 1) {
+      var o = state.players[opps[0]];
+      msg = name + ', det er din tur. Du skyder efter ' + o.name + ' (' + o.point.x + ', ' + o.point.y + '). Tryk på koordinatsystemet for at skyde.';
+    } else {
+      msg = name + ', det er din tur. Vælg en modstander, og tryk på koordinatsystemet for at skyde.';
+    }
+    if (extra) msg = extra + ' ' + msg;
+    state.banner = msg;
+    state.bannerKind = 'info';
+    state.boardHint = 'Tryk på koordinatsystemet for at åbne a og b. Ramte linjer bliver stående.';
+    renderUI();
+    draw();
+  }
+
+  function completeShot() {
+    state.shotsThisRound += 1;
+    var roundDone = state.shotsThisRound >= state.players.length;
+    if (roundDone) state.shotsThisRound = 0;
+    state.turn = (state.turn + 1) % state.players.length;
+    if (roundDone) {
+      var scores = state.players.map(function (p) { return p.score; });
+      var win = winnerAfterRound(scores);
+      if (win >= 0) {
+        endGame(win);
+        return;
+      }
+      var max = Math.max.apply(null, scores);
+      if (max >= 10) {
+        beginTurn('Flere har ' + max + ' point. I spiller en runde mere.');
+        return;
+      }
+    }
+    beginTurn();
+  }
+
+  function endGame(index) {
+    state.phase = 'win';
+    state.winner = index;
+    state.locked = true;
+    state.hover = null;
+    state.hoverText = '';
+    renderUI();
+    draw();
+    againBtn.focus();
+  }
+
+  function missText(fn, a, b, x, y) {
+    var yLine = a * x + b;
+    var diff = Math.abs(y - yLine);
+    var text = 'Forbi med ' + fn + '. Ved x = ' + x + ' er y = ' + formatNum(yLine) + ', men punktet har y = ' + y + '. Forskel: ' + formatNum(diff) + '.';
+    if (!clipLineToBoard(a, b)) text += ' Linjen går uden for brættet.';
+    if (diff <= 0.5) text += ' Tæt på.';
+    return text;
+  }
+
+  function resolveShot(snap, token) {
+    if (token !== shotToken || state.phase !== 'aim') return;
+    var a = snap.a;
+    var b = snap.b;
+    var x = snap.x;
+    var y = snap.y;
+    var hit = isHit(x, y, a, b);
+    var fn = formatFunction(a, b);
+    state.lastShot = {
+      a: a,
+      b: b,
+      fn: fn,
+      color: state.players[state.turn].color,
+      by: state.turn,
+      hit: hit,
+      x: x,
+      y: y
+    };
+    if (hit) {
+      state.hitLines.push({ a: a, b: b, color: state.players[state.turn].color });
+      state.sheetOpen = false;
+    }
+    if (state.mode === 'solo') {
+      if (hit) {
+        state.players[0].score += 1;
+        state.flash = { x: x, y: y, t: performance.now() };
+        state.result = 'Ramt! ' + fn + ' rammer (' + x + ', ' + y + '). +1 point.';
+        if (Math.abs(y - (a * x + b)) > 1e-4) state.result += ' Inden for margen på 0,02.';
+        state.resultKind = 'good';
+        state.banner = state.players[0].score >= 10 ? 'Sådan.' : 'Nyt punkt er på vej.';
+        state.bannerKind = 'good';
+        state.locked = true;
+        renderUI();
+        draw();
+        animateFlash();
+        window.setTimeout(function () {
+          if (token !== shotToken) return;
+          if (state.players[0].score >= 10) {
+            endGame(0);
+            return;
+          }
+          placeComputerPoint();
+          state.flash = null;
+          state.sheetOpen = false;
+          coefA.value = '';
+          coefB.value = '';
+          state.locked = false;
+          state.banner = state.players[0].name + ', punktet er (' + state.soloPoint.x + ', ' + state.soloPoint.y + '). Tryk på koordinatsystemet for at skyde.';
+          state.bannerKind = 'info';
+          state.boardHint = 'Tryk på koordinatsystemet for at åbne a og b. En ramt linje bliver stående.';
+          renderUI();
+          draw();
+        }, motionMs(CELEBRATE_MS));
+      } else {
+        state.result = missText(fn, a, b, x, y) + ' Prøv igen på samme punkt.';
+        state.resultKind = 'bad';
+        state.banner = 'Prøv igen på (' + x + ', ' + y + ').';
+        state.bannerKind = 'info';
+        state.locked = false;
+        renderUI();
+        draw();
+        if (state.sheetOpen) coefA.focus();
+      }
+      return;
+    }
+
+    if (hit) {
+      var shooter = state.players[state.turn];
+      shooter.score += 1;
+      var owner = snap.owner;
+      var targetPlayer = state.players[owner];
+      targetPlayer.point = null;
+      state.flash = { x: x, y: y, t: performance.now() };
+      state.phase = 'replace';
+      state.replaceIndex = owner;
+      state.locked = true;
+      state.result = 'Ramt! ' + shooter.name + ' får 1 point. ' + fn + ' rammer (' + x + ', ' + y + ').';
+      if (shooter.score >= 10) state.result += ' Runden spilles færdig, før der kåres en vinder.';
+      state.resultKind = 'good';
+      state.banner = targetPlayer.name + ', dit punkt blev ramt. Klik et nyt ledigt skæringspunkt.';
+      state.bannerKind = 'good';
+      state.boardHint = 'Klik på et ledigt skæringspunkt til det nye punkt.';
+      state.hover = null;
+      state.hoverText = '';
+      renderUI();
+      draw();
+      animateFlash();
+      return;
+    }
+
+    state.result = missText(fn, a, b, x, y);
+    state.resultKind = 'bad';
+    renderUI();
+    draw();
+    completeShot();
+  }
+
+  function onSubmit(e) {
+    e.preventDefault();
+    if (state.locked || state.phase !== 'aim') return;
+    state.formError = '';
+    var a = parseNumber(coefA.value);
+    var b = parseNumber(coefB.value);
+    if (a == null || b == null) {
+      state.formError = 'Skriv et gyldigt tal for både a og b. Brug f.eks. 0,5 eller -1.';
+      renderUI();
+      return;
+    }
+    var target = currentTarget();
+    if (!target) {
+      state.formError = 'Vælg hvilken modstanders punkt du skyder efter.';
+      renderUI();
+      return;
+    }
+    state.locked = true;
+    state.result = 'Skyder…';
+    state.resultKind = 'info';
+    renderUI();
+    var token = ++shotToken;
+    var snap = { a: a, b: b, x: target.x, y: target.y, owner: target.owner };
+    window.setTimeout(function () {
+      resolveShot(snap, token);
+    }, motionMs(SHOT_MS));
+  }
+
+  function commitPlace(x, y) {
+    if (state.phase === 'setup') {
+      state.players[state.setupIndex].point = { x: x, y: y };
+      state.setupIndex += 1;
+      state.placeError = '';
+      if (state.setupIndex >= state.players.length) {
+        state.shotsThisRound = 0;
+        state.turn = 0;
+        state.lastShot = null;
+        state.result = '';
+        beginTurn();
+        return;
+      }
+      var next = state.players[state.setupIndex];
+      state.banner = next.name + ', klik på et ledigt skæringspunkt. x fra 1 til 10, y fra 0 til 10.';
+      state.bannerKind = 'info';
+      state.hover = null;
+      state.hoverText = '';
+      renderUI();
+      draw();
+      return;
+    }
+    if (state.phase === 'replace') {
+      state.players[state.replaceIndex].point = { x: x, y: y };
+      state.placeError = '';
+      completeShot();
+    }
+  }
+
+  function tryPlace(pt) {
+    if (state.phase !== 'setup' && state.phase !== 'replace') return;
+    if (!pt) {
+      state.placeError = 'Klik tættere på et skæringspunkt, hvor gitterlinjerne mødes.';
+      renderUI();
+      return;
+    }
+    if (!canPlacePoint(pt.x, pt.y)) {
+      state.placeError = pt.x === 0
+        ? 'Ikke på y-aksen. Vælg et punkt med x fra 1 til 10.'
+        : 'Vælg et heltalskryds med x fra 1 til 10 og y fra 0 til 10.';
+      renderUI();
+      return;
+    }
+    if (occupied(pt.x, pt.y)) {
+      state.placeError = 'Det punkt er optaget. Vælg et andet.';
+      renderUI();
+      return;
+    }
+    commitPlace(pt.x, pt.y);
+  }
+
+  function pointerPos(e) {
+    var rect = canvas.getBoundingClientRect();
+    return {
+      px: e.clientX - rect.left,
+      py: e.clientY - rect.top,
+      w: rect.width,
+      h: rect.height
+    };
+  }
+
+  canvas.addEventListener('pointerdown', function (e) {
+    if (e.button != null && e.button !== 0) return;
+    if (state.phase === 'aim') {
+      e.preventDefault();
+      state.sheetOpen = !state.sheetOpen;
+      renderUI();
+      if (state.sheetOpen) coefA.focus();
+      else if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+      return;
+    }
+    if (state.phase !== 'setup' && state.phase !== 'replace') return;
+    e.preventDefault();
+    var pos = pointerPos(e);
+    tryPlace(snap(pos.px, pos.py, pos.w, pos.h));
+  }, { passive: false });
+
+  canvas.addEventListener('pointermove', function (e) {
+    if (state.phase !== 'setup' && state.phase !== 'replace') return;
+    var pos = pointerPos(e);
+    var pt = snap(pos.px, pos.py, pos.w, pos.h);
+    var text = '';
+    var hover = null;
+    if (pt && canPlacePoint(pt.x, pt.y) && !occupied(pt.x, pt.y)) {
+      hover = pt;
+      text = 'Felt (' + pt.x + ', ' + pt.y + ')';
+    } else if (pt && pt.x === 0) {
+      text = 'Ikke på y-aksen';
+    } else if (pt && occupied(pt.x, pt.y)) {
+      text = 'Optaget';
+    }
+    var same = (!hover && !state.hover) || (hover && state.hover && hover.x === state.hover.x && hover.y === state.hover.y);
+    if (same && text === state.hoverText) return;
+    state.hover = hover;
+    state.hoverText = text;
+    boardHintEl.hidden = !text;
+    boardHintEl.textContent = text;
+    draw();
+  });
+
+  canvas.addEventListener('pointerleave', function () {
+    if (!state.hover && !state.hoverText) return;
+    state.hover = null;
+    state.hoverText = '';
+    boardHintEl.hidden = true;
+    boardHintEl.textContent = '';
+    draw();
+  });
+
+  formEl.addEventListener('submit', onSubmit);
+  coefA.addEventListener('input', function () { state.formError = ''; formErrorEl.hidden = true; updatePreview(); });
+  coefB.addEventListener('input', function () { state.formError = ''; formErrorEl.hidden = true; updatePreview(); });
+  signA.addEventListener('click', function () { if (!signA.disabled) toggleSign(coefA); });
+  signB.addEventListener('click', function () { if (!signB.disabled) toggleSign(coefB); });
+
+  pickSolo.addEventListener('click', function () {
+    pickSolo.setAttribute('aria-pressed', 'true');
+    pickMulti.setAttribute('aria-pressed', 'false');
+    soloForm.hidden = false;
+    multiForm.hidden = true;
+    soloNameInput.focus();
+  });
+  pickMulti.addEventListener('click', function () {
+    pickMulti.setAttribute('aria-pressed', 'true');
+    pickSolo.setAttribute('aria-pressed', 'false');
+    multiForm.hidden = false;
+    soloForm.hidden = true;
+    nameRows[0].querySelector('input').focus();
+  });
+  soloForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    startSolo();
+  });
+  multiForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    startMulti();
+  });
+  countButtons.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      state.playerCount = Number(btn.dataset.count);
+      countButtons.forEach(function (other) {
+        other.setAttribute('aria-pressed', other === btn ? 'true' : 'false');
+      });
+      nameRows.forEach(function (row, index) {
+        row.hidden = index >= state.playerCount;
+      });
+    });
+  });
+  againBtn.addEventListener('click', playAgain);
+  toStartBtn.addEventListener('click', toFront);
+  forfraBtn.addEventListener('click', toFront);
+  openLearnBtn.addEventListener('click', openLearn);
+  learnBackBtn.addEventListener('click', toFront);
+  learnA.addEventListener('input', syncLearnFromInputs);
+  learnB.addEventListener('input', syncLearnFromInputs);
+  learnSignA.addEventListener('click', function () { toggleSign(learnA); });
+  learnSignB.addEventListener('click', function () { toggleSign(learnB); });
+  learnSliderA.addEventListener('input', syncLearnFromSliders);
+  learnSliderB.addEventListener('input', syncLearnFromSliders);
+
+  if (typeof ResizeObserver === 'function') {
+    new ResizeObserver(function () {
+      if (!gameScreen.hidden) resize();
+    }).observe(boardWrap);
+    new ResizeObserver(function () {
+      if (!learnScreen.hidden) resizeLearn();
+    }).observe(learnWrap);
+  } else {
+    window.addEventListener('resize', function () {
+      if (!gameScreen.hidden) resize();
+      if (!learnScreen.hidden) resizeLearn();
+    });
+  }
+  updatePreview();
+})();
+</script>
+</body>
+</html>
