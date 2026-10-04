@@ -598,9 +598,20 @@
         <span class="choice-title">Flere spillere</span>
         <span class="choice-text">I lægger punkter for hinanden og skyder på skift.</span>
       </button>
+      <button type="button" class="choice" id="pick-teacher" aria-pressed="false">
+        <span class="choice-kicker">Klassen</span>
+        <span class="choice-title">Jeg er lærer</span>
+        <span class="choice-text">Opret et rum med kode, link og QR. Se elevernes point, og hop selv ind i spillet.</span>
+      </button>
+      <button type="button" class="choice" id="pick-student" aria-pressed="false">
+        <span class="choice-kicker">Klassen</span>
+        <span class="choice-title">Jeg er elev</span>
+        <span class="choice-text">Gå med via link eller kode, og skriv dit navn.</span>
+      </button>
     </div>
 
     <p class="learn-entry"><button type="button" class="learn-link" id="open-learn">Sådan virker linjen</button></p>
+    <p class="learn-entry" id="back-room-wrap" hidden><button type="button" class="learn-link" id="back-room">Tilbage til lærermenuen</button></p>
 
     <form id="solo-form" class="setup" hidden>
       <label class="field">
@@ -662,8 +673,102 @@
           <li>En runde er ét skud fra hver spiller. Når nogen når 10, skyder de andre runden færdig. Bagefter vinder den, der alene har flest point, hvis det er mindst 10. Står flere lige øverst, spilles en runde mere.</li>
         </ul>
         <p>Punkter på y-aksen (x = 0) bruges ikke, fordi enhver linje med den rigtige b ville ramme dem.</p>
+        <p><strong>Lærer og elever.</strong> Læreren opretter et rum. Eleverne går med med kode eller link og et navn. I grupper starter spillet, når læreren trykker Start, eller siger at gruppen er klar. Læreren kan lukke for nye spil, sende alle til menuen og selv hoppe ind i spillet. Under spillet er der altid en knap tilbage til lærermenuen.</p>
       </div>
     </details>
+  </section>
+
+
+  <section id="screen-join" hidden>
+    <form id="join-form" class="setup">
+      <h2>Gå med i rummet</h2>
+      <label class="field">
+        <span class="field-label">Kode</span>
+        <input id="join-code" type="text" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="f.eks. AB-CDEF">
+      </label>
+      <label class="field">
+        <span class="field-label">Dit navn</span>
+        <input id="join-name" type="text" maxlength="20" autocomplete="nickname">
+      </label>
+      <p id="join-error" class="error" role="alert" hidden></p>
+      <button class="btn" type="submit">Gå med</button>
+      <button class="btn secondary" type="button" id="join-back">Til forsiden</button>
+    </form>
+  </section>
+
+  <section id="screen-lobby" hidden>
+    <div class="setup">
+      <p class="eyebrow">Elev</p>
+      <h2 id="lobby-hi">Hej</h2>
+      <p class="lede" id="lobby-room"></p>
+      <p id="lobby-status"></p>
+      <div id="lobby-groups" class="count-picker" role="group" aria-label="Vælg gruppe" hidden></div>
+      <button type="button" class="btn" id="lobby-start" hidden>Start spil</button>
+      <p class="learn-entry"><button type="button" class="learn-link" id="lobby-learn">Sådan virker linjen</button></p>
+      <button type="button" class="btn secondary" id="lobby-leave">Forlad rummet</button>
+    </div>
+  </section>
+
+  <section id="screen-teacher" hidden>
+    <div class="room-page">
+      <h2 id="teacher-title">Rum</h2>
+      <p class="room-lead">Eleverne åbner linket eller scanner koden.</p>
+      <p class="fine">To faner i samme browser kan være lærer og elev. Telefoner deler ikke rummet endnu.</p>
+      <div class="room-row">
+        <div class="room-card">
+          <canvas id="teacher-qr" width="148" height="148" aria-label="QR-kode til elevernes link"></canvas>
+          <div class="fine" id="teacher-code">kode:</div>
+          <a id="teacher-link" href="" target="_blank" rel="noopener"></a>
+          <button type="button" class="btn secondary" id="teacher-copy">Kopiér link</button>
+        </div>
+        <div class="room-card mode">
+          <div class="fine">Tilstand</div>
+          <strong id="teacher-mode-label">Hver for sig</strong>
+          <div class="room-actions">
+            <button type="button" class="btn secondary" id="mode-alene" aria-pressed="true">Hver for sig</button>
+            <button type="button" class="btn secondary" id="mode-grupper" aria-pressed="false">Grupper</button>
+          </div>
+          <div class="fine" id="teacher-mode-hint">Skift til grupper, når runden er slut.</div>
+        </div>
+        <div class="room-card">
+          <button type="button" class="btn" id="teacher-start">Start spillet</button>
+          <div class="fine" id="teacher-ready">Ingen elever endnu</div>
+          <div class="room-actions" id="teacher-group-actions" hidden></div>
+        </div>
+        <div class="room-card">
+          <button type="button" class="btn secondary" id="teacher-menu">Send alle til menuen</button>
+          <button type="button" class="btn secondary" id="teacher-games">Luk for nye spil</button>
+          <div class="fine" id="teacher-games-label">Nye spil er åbne</div>
+        </div>
+        <div class="room-card">
+          <button type="button" class="btn secondary" id="teacher-learn">Sådan virker linjen</button>
+          <div class="fine">Læreren kan selv åbne forklaringen og skyderne</div>
+        </div>
+        <div class="room-card">
+          <button type="button" class="btn" id="teacher-play">Spil med</button>
+          <div class="room-actions" id="teacher-play-groups" hidden></div>
+          <div class="fine">Hop selv ind. Knappen Til lærermenuen bliver stående, også når spillet er slut.</div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Elev</th>
+              <th>Hvor</th>
+              <th>Point</th>
+              <th>Opgaver</th>
+              <th>Rigtige</th>
+              <th>Forkerte</th>
+              <th>Rigtig/forkert</th>
+            </tr>
+          </thead>
+          <tbody id="teacher-body"></tbody>
+        </table>
+      </div>
+      <p class="fine" id="teacher-empty">Ingen elever endnu. De åbner linket eller skriver koden.</p>
+      <p class="learn-entry"><button type="button" class="text-btn" id="teacher-front">Til forsiden</button></p>
+    </div>
   </section>
 
   <section id="screen-learn" hidden>
@@ -708,6 +813,7 @@
             <p>Rammer hvis |y − (ax + b)| ≤ 0,02. Ingen facit. Énspiller: prøv igen på samme punkt. Flerspiller: turen går videre ved forbi, og den ramte lægger et nyt punkt. Vinder kåres først efter runden, og kun hvis én spiller alene har flest point og mindst 10.</p>
           </div>
         </details>
+        <button type="button" class="teacher-back" id="to-teacher" hidden>Til lærermenuen</button>
         <button type="button" class="text-btn" id="forfra">Start forfra</button>
       </header>
       <div class="board-wrap" id="board-wrap">
@@ -727,6 +833,7 @@
           <ol id="win-scores"></ol>
           <div class="win-actions">
             <button type="button" class="btn" id="again">Spil igen</button>
+            <button type="button" class="btn secondary" id="win-to-teacher" hidden>Til lærermenuen</button>
             <button type="button" class="btn secondary" id="to-start">Til forsiden</button>
           </div>
         </div>
@@ -923,6 +1030,7 @@
   var openLearnBtn = document.getElementById('open-learn');
   var learnBackBtn = document.getElementById('learn-back');
   var learnView = 0;
+  var learnReturn = 'start';
 
   var state = {
     mode: 'solo',
@@ -949,7 +1057,9 @@
     hover: null,
     hoverText: '',
     locked: false,
-    winner: null
+    winner: null,
+    classroom: false,
+    teacherPlaying: false
   };
 
   var shotToken = 0;
@@ -1427,7 +1537,11 @@
   function openLearn() {
     gameScreen.hidden = true;
     startScreen.hidden = true;
+    teacherScreen.hidden = true;
+    joinScreen.hidden = true;
+    lobbyScreen.hidden = true;
     learnScreen.hidden = false;
+    if (classSession()) classTouchWhere('learn');
     syncLearnFromInputs();
     requestAnimationFrame(resizeLearn);
   }
@@ -1581,6 +1695,10 @@
     winCard.hidden = state.phase !== 'win';
     if (state.phase === 'win') renderWin();
     forfraBtn.hidden = state.phase === 'win';
+    // Til lærermenuen bliver stående under hele spillet, også når det er slut.
+    toTeacherBtn.hidden = !state.teacherPlaying;
+    winToTeacherBtn.hidden = !state.teacherPlaying;
+    toStartBtn.textContent = state.teacherPlaying ? 'Til lærermenuen' : 'Til forsiden';
     boardHintEl.hidden = !state.hoverText;
     boardHintEl.textContent = state.hoverText || '';
     if (state.phase === 'setup' || state.phase === 'replace') {
@@ -1597,19 +1715,37 @@
   function showGame() {
     startScreen.hidden = true;
     learnScreen.hidden = true;
+    teacherScreen.hidden = true;
+    joinScreen.hidden = true;
+    lobbyScreen.hidden = true;
     gameScreen.hidden = false;
     renderUI();
     requestAnimationFrame(function () { resize(); });
   }
 
   function toFront() {
+    if (state.teacherPlaying) {
+      classBackToTeacher();
+      return;
+    }
+    if (state.classroom && classIsStudent()) {
+      classExitToLobby();
+      return;
+    }
     invalidate();
     state.phase = 'start';
     state.flash = null;
     state.sheetOpen = false;
+    state.classroom = false;
+    state.teacherPlaying = false;
     gameScreen.hidden = true;
     learnScreen.hidden = true;
+    teacherScreen.hidden = true;
+    joinScreen.hidden = true;
+    lobbyScreen.hidden = true;
+    if (topHeader) topHeader.hidden = false;
     startScreen.hidden = false;
+    classSyncStartLink();
   }
 
   function freshPlayer(name, color) {
@@ -1642,6 +1778,8 @@
 
   function startSolo() {
     invalidate();
+    state.classroom = false;
+    state.teacherPlaying = false;
     var name = cleanName(soloNameInput.value, 'Spiller 1');
     state.mode = 'solo';
     state.players = [freshPlayer(name, COLORS[0])];
@@ -1656,6 +1794,8 @@
 
   function startMulti() {
     invalidate();
+    state.classroom = false;
+    state.teacherPlaying = false;
     state.mode = 'multi';
     state.players = [];
     for (var i = 0; i < state.playerCount; i++) {
@@ -1672,6 +1812,8 @@
 
   function playAgain() {
     invalidate();
+    state.classroom = false;
+    state.teacherPlaying = false;
     var mode = state.mode;
     var players = state.players.map(function (p) {
       return freshPlayer(p.name, p.color);
@@ -1791,6 +1933,7 @@
     if (state.mode === 'solo') {
       if (hit) {
         state.players[0].score += 1;
+        classNoteShot(true);
         state.flash = { x: x, y: y, t: performance.now() };
         state.result = 'Ramt! ' + fn + ' rammer (' + x + ', ' + y + '). +1 point.';
         if (Math.abs(y - (a * x + b)) > 1e-4) state.result += ' Inden for margen på 0,02.';
@@ -1820,6 +1963,7 @@
           draw();
         }, motionMs(CELEBRATE_MS));
       } else {
+        classNoteShot(false);
         state.result = missText(fn, a, b, x, y) + ' Prøv igen på samme punkt.';
         state.resultKind = 'bad';
         state.banner = 'Prøv igen på (' + x + ', ' + y + ').';
@@ -2039,11 +2183,37 @@
       });
     });
   });
-  againBtn.addEventListener('click', playAgain);
+  againBtn.addEventListener('click', function () {
+    if (state.teacherPlaying) {
+      var sess = classSession();
+      var stu = sess ? classReadStudent(sess.code, 'teacher') : null;
+      startTeacherGame(stu && stu.group);
+      return;
+    }
+    if (state.classroom && classIsStudent()) {
+      var sess2 = classSession();
+      var room = sess2 ? classReadRoom(sess2.code) : null;
+      if (room && room.mode !== 'grupper' && room.gamesOpen) {
+        startClassroomGame();
+        return;
+      }
+      classExitToLobby('Læreren skal starte næste spil.');
+      return;
+    }
+    playAgain();
+  });
   toStartBtn.addEventListener('click', toFront);
   forfraBtn.addEventListener('click', toFront);
-  openLearnBtn.addEventListener('click', openLearn);
-  learnBackBtn.addEventListener('click', toFront);
+  openLearnBtn.addEventListener('click', function () {
+    learnReturn = 'start';
+    learnBackBtn.textContent = 'Til forsiden';
+    openLearn();
+  });
+  learnBackBtn.addEventListener('click', function () {
+    if (learnReturn === 'teacher') { classBackToTeacher(); return; }
+    if (learnReturn === 'lobby') { classExitToLobby(); return; }
+    toFront();
+  });
   learnA.addEventListener('input', syncLearnFromInputs);
   learnB.addEventListener('input', syncLearnFromInputs);
   learnSignA.addEventListener('click', function () { toggleSign(learnA); });
@@ -2064,6 +2234,1031 @@
       if (!learnScreen.hidden) resizeLearn();
     });
   }
+// Byte-mode QR, versions 1–6, ECC M (falls back to L). Returns {size, dark: Uint8Array row-major}.
+function mulTable() {
+  var exp = new Uint8Array(512);
+  var log = new Uint8Array(256);
+  var x = 1;
+  for (var i = 0; i < 255; i++) {
+    exp[i] = x;
+    log[x] = i;
+    x <<= 1;
+    if (x & 256) x ^= 0x11d;
+  }
+  for (var j = 255; j < 512; j++) exp[j] = exp[j - 255];
+  return { exp: exp, log: log };
+}
+var GF = mulTable();
+function gmul(a, b) {
+  if (!a || !b) return 0;
+  return GF.exp[GF.log[a] + GF.log[b]];
+}
+var GEN = {};
+function rsGen(nsym) {
+  if (GEN[nsym]) return GEN[nsym];
+  var g = [1];
+  for (var i = 0; i < nsym; i++) {
+    var ng = new Array(g.length + 1).fill(0);
+    for (var j = 0; j < g.length; j++) {
+      ng[j] ^= g[j];
+      ng[j + 1] ^= gmul(g[j], GF.exp[i]);
+    }
+    g = ng;
+  }
+  GEN[nsym] = g;
+  return g;
+}
+function rsEncode(data, nsym) {
+  var gen = rsGen(nsym);
+  var res = data.slice();
+  for (var k = 0; k < nsym; k++) res.push(0);
+  for (var i = 0; i < data.length; i++) {
+    var coef = res[i];
+    if (!coef) continue;
+    for (var j = 0; j < gen.length; j++) res[i + j] ^= gmul(gen[j], coef);
+  }
+  return res.slice(data.length);
+}
+// EC(blocks described as list of [count, total, data]) level M and L for v1-6
+var ECC = {
+  1: { M: [[1, 26, 16]], L: [[1, 26, 19]] },
+  2: { M: [[1, 44, 28]], L: [[1, 44, 34]] },
+  3: { M: [[1, 70, 44]], L: [[1, 70, 55]] },
+  4: { M: [[2, 50, 32]], L: [[1, 100, 80]] },
+  5: { M: [[2, 67, 43]], L: [[1, 134, 108]] },
+  6: { M: [[4, 43, 27]], L: [[2, 86, 68]] }
+};
+var ALIGN = { 2: [6, 18], 3: [6, 22], 4: [6, 26], 5: [6, 30], 6: [6, 34] };
+
+function dataCapacity(spec) {
+  var n = 0;
+  for (var i = 0; i < spec.length; i++) n += spec[i][0] * spec[i][2];
+  return n;
+}
+function choose(len) {
+  var levels = ['M', 'L'];
+  for (var li = 0; li < levels.length; li++) {
+    var level = levels[li];
+    for (var v = 1; v <= 6; v++) {
+      var cap = dataCapacity(ECC[v][level]);
+      // mode 4 bits + count 8 bits + data*8 + terminator up to 4, so bytes needed roughly len+2
+      if (len + 2 <= cap) return { v: v, level: level, cap: cap, spec: ECC[v][level] };
+    }
+  }
+  return null;
+}
+function pushBits(bits, val, n) {
+  for (var i = n - 1; i >= 0; i--) bits.push((val >>> i) & 1);
+}
+function buildData(bytes, cap) {
+  var bits = [];
+  pushBits(bits, 0x4, 4);
+  pushBits(bits, bytes.length, 8);
+  for (var i = 0; i < bytes.length; i++) pushBits(bits, bytes[i], 8);
+  var term = Math.min(4, cap * 8 - bits.length);
+  pushBits(bits, 0, term);
+  while (bits.length % 8) bits.push(0);
+  var bytesOut = [];
+  for (var b = 0; b < bits.length; b += 8) {
+    var v = 0;
+    for (var k = 0; k < 8; k++) v = (v << 1) | bits[b + k];
+    bytesOut.push(v);
+  }
+  var pad = 0xec;
+  while (bytesOut.length < cap) {
+    bytesOut.push(pad);
+    pad ^= 0xec ^ 0x11;
+  }
+  return bytesOut;
+}
+function interleave(data, spec) {
+  var blocks = [];
+  var offset = 0;
+  var maxData = 0;
+  var maxEcc = 0;
+  for (var s = 0; s < spec.length; s++) {
+    var count = spec[s][0], total = spec[s][1], nd = spec[s][2];
+    var ne = total - nd;
+    maxData = Math.max(maxData, nd);
+    maxEcc = Math.max(maxEcc, ne);
+    for (var c = 0; c < count; c++) {
+      var db = data.slice(offset, offset + nd);
+      offset += nd;
+      blocks.push({ data: db, ecc: rsEncode(db, ne) });
+    }
+  }
+  var out = [];
+  for (var i = 0; i < maxData; i++) {
+    for (var b = 0; b < blocks.length; b++) if (i < blocks[b].data.length) out.push(blocks[b].data[i]);
+  }
+  for (var e = 0; e < maxEcc; e++) {
+    for (var b2 = 0; b2 < blocks.length; b2++) if (e < blocks[b2].ecc.length) out.push(blocks[b2].ecc[e]);
+  }
+  return out;
+}
+function formatBits(level, mask) {
+  var ecl = level === 'L' ? 1 : level === 'M' ? 0 : level === 'Q' ? 3 : 2;
+  var data = (ecl << 3) | mask;
+  var rem = data;
+  for (var i = 0; i < 10; i++) rem = (rem << 1) ^ (((rem >>> 9) & 1) * 0x537);
+  return ((data << 10) | (rem & 0x3ff)) ^ 0x5412;
+}
+function makeMatrix(version, level, codewords, maskForce) {
+  var size = 17 + 4 * version;
+  var dark = [];
+  var fun = [];
+  for (var r = 0; r < size; r++) {
+    dark.push(new Array(size).fill(false));
+    fun.push(new Array(size).fill(false));
+  }
+  function setF(x, y, on) {
+    fun[y][x] = true;
+    dark[y][x] = !!on;
+  }
+  function finder(x0, y0) {
+    for (var dy = -1; dy <= 7; dy++) {
+      for (var dx = -1; dx <= 7; dx++) {
+        var x = x0 + dx, y = y0 + dy;
+        if (x < 0 || y < 0 || x >= size || y >= size) continue;
+        var on = dx >= 0 && dx <= 6 && dy >= 0 && dy <= 6 && (dx === 0 || dx === 6 || dy === 0 || dy === 6 || (dx >= 2 && dx <= 4 && dy >= 2 && dy <= 4));
+        setF(x, y, on);
+      }
+    }
+  }
+  finder(0, 0);
+  finder(size - 7, 0);
+  finder(0, size - 7);
+  for (var i = 8; i < size - 8; i++) {
+    setF(i, 6, i % 2 === 0);
+    setF(6, i, i % 2 === 0);
+  }
+  var pos = ALIGN[version];
+  if (pos) {
+    for (var a = 0; a < pos.length; a++) {
+      for (var b = 0; b < pos.length; b++) {
+        var cx = pos[a], cy = pos[b];
+        if (fun[cy][cx]) continue;
+        for (var dy = -2; dy <= 2; dy++) {
+          for (var dx = -2; dx <= 2; dx++) {
+            var on = Math.max(Math.abs(dx), Math.abs(dy)) !== 1;
+            setF(cx + dx, cy + dy, on);
+          }
+        }
+      }
+    }
+  }
+  // reserve format areas
+  for (var i = 0; i < 9; i++) { if (i !== 6) { fun[8][i] = true; fun[i][8] = true; } }
+  for (var i = 0; i < 8; i++) { fun[8][size - 1 - i] = true; fun[size - 1 - i][8] = true; }
+  setF(8, size - 8, true); // dark module
+  // data bits
+  var bits = [];
+  for (var c = 0; c < codewords.length; c++) pushBits(bits, codewords[c], 8);
+  var remBits = version === 1 ? 0 : 7;
+  for (var rb = 0; rb < remBits; rb++) bits.push(0);
+  var bi = 0;
+  var upward = true;
+  for (var col = size - 1; col > 0; col -= 2) {
+    if (col === 6) col--;
+    for (var step = 0; step < size; step++) {
+      var row = upward ? size - 1 - step : step;
+      for (var dx = 0; dx < 2; dx++) {
+        var x = col - dx;
+        if (fun[row][x]) continue;
+        dark[row][x] = bi < bits.length ? bits[bi] === 1 : false;
+        bi++;
+      }
+    }
+    upward = !upward;
+  }
+  function masked(mask) {
+    var out = dark.map(function (row) { return row.slice(); });
+    for (var y = 0; y < size; y++) {
+      for (var x = 0; x < size; x++) {
+        if (fun[y][x]) continue;
+        var m = false;
+        switch (mask) {
+          case 0: m = (x + y) % 2 === 0; break;
+          case 1: m = y % 2 === 0; break;
+          case 2: m = x % 3 === 0; break;
+          case 3: m = (x + y) % 3 === 0; break;
+          case 4: m = (Math.floor(y / 2) + Math.floor(x / 3)) % 2 === 0; break;
+          case 5: m = ((x * y) % 2) + ((x * y) % 3) === 0; break;
+          case 6: m = (((x * y) % 2) + ((x * y) % 3)) % 2 === 0; break;
+          default: m = (((x + y) % 2) + ((x * y) % 3)) % 2 === 0; break;
+        }
+        if (m) out[y][x] = !out[y][x];
+      }
+    }
+    return out;
+  }
+  function applyFormat(grid, mask) {
+    var bits = formatBits(level, mask);
+    function bit(i) { return ((bits >>> i) & 1) === 1; }
+    for (var i = 0; i <= 5; i++) grid[i][8] = bit(i);
+    grid[7][8] = bit(6);
+    grid[8][8] = bit(7);
+    grid[8][7] = bit(8);
+    for (var i = 9; i < 15; i++) grid[8][14 - i] = bit(i);
+    for (var i = 0; i < 8; i++) grid[8][size - 1 - i] = bit(i);
+    for (var i = 8; i < 15; i++) grid[size - 15 + i][8] = bit(i);
+    grid[size - 8][8] = true;
+  }
+  function penalty(grid) {
+    var p = 0;
+    var sizeN = grid.length;
+    for (var y = 0; y < sizeN; y++) {
+      var run = 1;
+      for (var x = 1; x < sizeN; x++) {
+        if (grid[y][x] === grid[y][x - 1]) run++;
+        else { if (run >= 5) p += 3 + (run - 5); run = 1; }
+      }
+      if (run >= 5) p += 3 + (run - 5);
+    }
+    for (var x = 0; x < sizeN; x++) {
+      var run = 1;
+      for (var y = 1; y < sizeN; y++) {
+        if (grid[y][x] === grid[y - 1][x]) run++;
+        else { if (run >= 5) p += 3 + (run - 5); run = 1; }
+      }
+      if (run >= 5) p += 3 + (run - 5);
+    }
+    for (var y = 0; y < sizeN - 1; y++) {
+      for (var x = 0; x < sizeN - 1; x++) {
+        var v = grid[y][x];
+        if (v === grid[y][x + 1] && v === grid[y + 1][x] && v === grid[y + 1][x + 1]) p += 3;
+      }
+    }
+    function finderPenalty(line) {
+      var s = line.map(function (b) { return b ? '1' : '0'; }).join('');
+      var add = 0;
+      var pats = ['10111010000', '00001011101'];
+      for (var pi = 0; pi < pats.length; pi++) {
+        var from = 0;
+        while (true) {
+          var at = s.indexOf(pats[pi], from);
+          if (at < 0) break;
+          add += 40;
+          from = at + 1;
+        }
+      }
+      return add;
+    }
+    for (var y = 0; y < sizeN; y++) p += finderPenalty(grid[y]);
+    for (var x = 0; x < sizeN; x++) {
+      var col = [];
+      for (var y = 0; y < sizeN; y++) col.push(grid[y][x]);
+      p += finderPenalty(col);
+    }
+    var darkCount = 0;
+    for (var y = 0; y < sizeN; y++) for (var x = 0; x < sizeN; x++) if (grid[y][x]) darkCount++;
+    var pct = (darkCount * 100) / (sizeN * sizeN);
+    var k = Math.floor(Math.abs(pct - 50) / 5);
+    p += k * 10;
+    return p;
+  }
+  var best = null, bestP = Infinity, bestM = 0;
+  var masks = maskForce == null ? [0, 1, 2, 3, 4, 5, 6, 7] : [maskForce];
+  for (var mi = 0; mi < masks.length; mi++) {
+    var m = masks[mi];
+    var grid = masked(m);
+    applyFormat(grid, m);
+    var pen = penalty(grid);
+    if (pen < bestP) { bestP = pen; best = grid; bestM = m; }
+  }
+  return { size: size, grid: best, mask: bestM, version: version, level: level, bitsUsed: bi, bitCount: bits.length };
+}
+
+function qrMatrix(text, maskForce) {
+  var bytes = [];
+  for (var i = 0; i < text.length; i++) {
+    var c = text.charCodeAt(i);
+    if (c > 255) throw new Error('latin1');
+    bytes.push(c);
+  }
+  var ch = choose(bytes.length);
+  if (!ch) throw new Error('too long');
+  var data = buildData(bytes, ch.cap);
+  var cw = interleave(data, ch.spec);
+  return makeMatrix(ch.v, ch.level, cw, maskForce);
+}
+
+
+  // sammenskudsgilde-848aa har en offentlig Firebase-nøgle, men firestore.rules
+  // afviser alle samlinger undtagen parties. Rummet ligger derfor i localStorage,
+  // så lærer og elev kan prøves i to faner. Telefoner deler ikke rummet.
+  var CLASS_SESS = 'fps-klasse-session';
+  var classBC = null;
+  try { classBC = new BroadcastChannel('fps-klasse'); } catch (e) { classBC = null; }
+  var classQrFor = '';
+  var classTeacherSnap = '';
+  var classLobbySnap = '';
+  var classLobbyNote = '';
+  var topHeader = document.querySelector('header.top');
+  var teacherScreen = document.getElementById('screen-teacher');
+  var joinScreen = document.getElementById('screen-join');
+  var lobbyScreen = document.getElementById('screen-lobby');
+  var teacherTitle = document.getElementById('teacher-title');
+  var teacherCode = document.getElementById('teacher-code');
+  var teacherLink = document.getElementById('teacher-link');
+  var teacherCopy = document.getElementById('teacher-copy');
+  var teacherQr = document.getElementById('teacher-qr');
+  var teacherModeLabel = document.getElementById('teacher-mode-label');
+  var teacherModeHint = document.getElementById('teacher-mode-hint');
+  var modeAleneBtn = document.getElementById('mode-alene');
+  var modeGrupperBtn = document.getElementById('mode-grupper');
+  var teacherStartBtn = document.getElementById('teacher-start');
+  var teacherReady = document.getElementById('teacher-ready');
+  var teacherGroupActions = document.getElementById('teacher-group-actions');
+  var teacherMenuBtn = document.getElementById('teacher-menu');
+  var teacherGamesBtn = document.getElementById('teacher-games');
+  var teacherGamesLabel = document.getElementById('teacher-games-label');
+  var teacherLearnBtn = document.getElementById('teacher-learn');
+  var teacherPlayBtn = document.getElementById('teacher-play');
+  var teacherPlayGroups = document.getElementById('teacher-play-groups');
+  var teacherBody = document.getElementById('teacher-body');
+  var teacherEmpty = document.getElementById('teacher-empty');
+  var teacherFrontBtn = document.getElementById('teacher-front');
+  var joinForm = document.getElementById('join-form');
+  var joinCodeInput = document.getElementById('join-code');
+  var joinNameInput = document.getElementById('join-name');
+  var joinError = document.getElementById('join-error');
+  var joinBackBtn = document.getElementById('join-back');
+  var pickTeacher = document.getElementById('pick-teacher');
+  var pickStudent = document.getElementById('pick-student');
+  var lobbyHi = document.getElementById('lobby-hi');
+  var lobbyRoom = document.getElementById('lobby-room');
+  var lobbyStatus = document.getElementById('lobby-status');
+  var lobbyGroups = document.getElementById('lobby-groups');
+  var lobbyStart = document.getElementById('lobby-start');
+  var lobbyLearn = document.getElementById('lobby-learn');
+  var lobbyLeave = document.getElementById('lobby-leave');
+  var backRoomWrap = document.getElementById('back-room-wrap');
+  var backRoomBtn = document.getElementById('back-room');
+  var toTeacherBtn = document.getElementById('to-teacher');
+  var winToTeacherBtn = document.getElementById('win-to-teacher');
+
+  function classPing() {
+    if (classBC) {
+      try { classBC.postMessage(1); } catch (e) {}
+    }
+  }
+  function classSession() {
+    try { return JSON.parse(sessionStorage.getItem(CLASS_SESS) || 'null'); }
+    catch (e2) { return null; }
+  }
+  function classSaveSession(s) {
+    if (!s) sessionStorage.removeItem(CLASS_SESS);
+    else sessionStorage.setItem(CLASS_SESS, JSON.stringify(s));
+  }
+  function classIsStudent() {
+    var s = classSession();
+    return !!(s && s.role === 'student');
+  }
+  function classRoomKey(code) { return 'fps-klasse-rum:' + code; }
+  function classStuPrefix(code) { return 'fps-klasse-elev:' + code + ':'; }
+  function classStuKey(code, id) { return classStuPrefix(code) + id; }
+  function classRand(n) {
+    var alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    var s = '';
+    var bytes = new Uint8Array(n);
+    if (window.crypto && window.crypto.getRandomValues) window.crypto.getRandomValues(bytes);
+    else {
+      for (var i = 0; i < n; i++) bytes[i] = Math.floor(Math.random() * 256);
+    }
+    for (var j = 0; j < n; j++) s += alphabet[bytes[j] % alphabet.length];
+    return s;
+  }
+  function classMakeCode() {
+    var raw = classRand(6);
+    var code = raw.slice(0, 2) + '-' + raw.slice(2);
+    if (localStorage.getItem(classRoomKey(code))) return classMakeCode();
+    return code;
+  }
+  function classNormCode(raw) {
+    var t = String(raw || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (t.length !== 6) return '';
+    return t.slice(0, 2) + '-' + t.slice(2);
+  }
+  function classReadRoom(code) {
+    try { return JSON.parse(localStorage.getItem(classRoomKey(code)) || 'null'); }
+    catch (e) { return null; }
+  }
+  function classWriteRoom(room) {
+    localStorage.setItem(classRoomKey(room.code), JSON.stringify(room));
+    classPing();
+  }
+  function classReadStudent(code, id) {
+    try { return JSON.parse(localStorage.getItem(classStuKey(code, id)) || 'null'); }
+    catch (e) { return null; }
+  }
+  function classWriteStudentRawFor(code, stu) {
+    stu.updated = Date.now();
+    localStorage.setItem(classStuKey(code, stu.id), JSON.stringify(stu));
+    classPing();
+  }
+  function classListStudents(code) {
+    var prefix = classStuPrefix(code);
+    var out = [];
+    for (var i = 0; i < localStorage.length; i++) {
+      var k = localStorage.key(i);
+      if (!k || k.indexOf(prefix) !== 0) continue;
+      try { out.push(JSON.parse(localStorage.getItem(k))); } catch (e) {}
+    }
+    out.sort(function (a, b) {
+      return String(a.name || '').localeCompare(String(b.name || ''), 'da');
+    });
+    return out;
+  }
+  function classTd(text) {
+    var td = document.createElement('td');
+    td.textContent = text;
+    return td;
+  }
+  function classNum(n) {
+    n = Number(n);
+    if (!isFinite(n) || n < 0) return 0;
+    return Math.floor(n);
+  }
+  function classRatio(correct, wrong) {
+    correct = classNum(correct);
+    wrong = classNum(wrong);
+    if (!wrong) return '–';
+    var r = Math.round((correct / wrong) * 10) / 10;
+    return r.toFixed(1).replace('.', ',');
+  }
+  function classWhereInfo(student, mode) {
+    if (student.where === 'learn') return { text: 'Kigger på linjen', cls: 'tag-learn' };
+    if (student.where === 'playing') {
+      if (mode === 'grupper' && student.group) return { text: 'Spiller, gruppe ' + student.group, cls: 'tag-play' };
+      return { text: 'Spiller', cls: 'tag-play' };
+    }
+    return { text: 'I menuen', cls: 'tag-menu' };
+  }
+  function classJoinUrl(code) {
+    try {
+      if (location.protocol === 'http:' || location.protocol === 'https:') {
+        var u = new URL(location.href);
+        u.search = '?rum=' + code;
+        u.hash = '';
+        return u.toString();
+      }
+    } catch (e) {}
+    return 'https://abusedwaffle.github.io/funktion-punkt-skyder/?rum=' + code;
+  }
+  function classSetQuery(code) {
+    try {
+      var path = location.pathname || '';
+      history.replaceState(null, '', path + (code ? ('?rum=' + code) : ''));
+    } catch (e) {}
+  }
+  function drawQr(canvas, text) {
+    var m = qrMatrix(text, null);
+    var quiet = 4;
+    var scale = 4;
+    var dim = m.size + quiet * 2;
+    var px = dim * scale;
+    canvas.width = px;
+    canvas.height = px;
+    var g = canvas.getContext('2d');
+    g.fillStyle = '#fffdf8';
+    g.fillRect(0, 0, px, px);
+    g.fillStyle = '#2c241b';
+    for (var y = 0; y < m.size; y++) {
+      for (var x = 0; x < m.size; x++) {
+        if (m.grid[y][x]) g.fillRect((x + quiet) * scale, (y + quiet) * scale, scale, scale);
+      }
+    }
+    canvas.setAttribute('aria-label', 'QR-kode til ' + text);
+  }
+  function classHideScreens() {
+    startScreen.hidden = true;
+    gameScreen.hidden = true;
+    learnScreen.hidden = true;
+    teacherScreen.hidden = true;
+    joinScreen.hidden = true;
+    lobbyScreen.hidden = true;
+  }
+  function classSyncStartLink() {
+    var sess = classSession();
+    var room = sess ? classReadRoom(sess.code) : null;
+    var show = !!(sess && room && (sess.role !== 'teacher' || room.token === sess.token));
+    backRoomWrap.hidden = !show;
+    if (!show) return;
+    backRoomBtn.textContent = sess.role === 'teacher' ? 'Tilbage til lærermenuen' : 'Tilbage til rummet';
+  }
+  function classShowStart() {
+    classHideScreens();
+    if (topHeader) topHeader.hidden = false;
+    startScreen.hidden = false;
+    classSyncStartLink();
+  }
+  function classOwnRoom() {
+    var sess = classSession();
+    if (!sess || sess.role !== 'teacher') return null;
+    var room = classReadRoom(sess.code);
+    if (!room || room.token !== sess.token) return null;
+    return room;
+  }
+  function classShowTeacher() {
+    invalidate();
+    state.phase = 'start';
+    state.sheetOpen = false;
+    state.teacherPlaying = false;
+    state.classroom = false;
+    classHideScreens();
+    if (topHeader) topHeader.hidden = true;
+    teacherScreen.hidden = false;
+    var sess = classSession();
+    if (sess) {
+      var stu = classReadStudent(sess.code, 'teacher');
+      if (stu && stu.where !== 'menu') {
+        stu.where = 'menu';
+        classWriteStudentRawFor(sess.code, stu);
+      }
+    }
+    classTeacherSnap = '';
+    classRenderTeacher(true);
+  }
+  function classShowJoin(prefill) {
+    classHideScreens();
+    if (topHeader) topHeader.hidden = false;
+    joinScreen.hidden = false;
+    joinError.hidden = true;
+    if (prefill) joinCodeInput.value = prefill;
+    window.setTimeout(function () { joinNameInput.focus(); }, 0);
+  }
+  function classRenderLobby() {
+    var sess = classSession();
+    if (!sess || sess.role !== 'student') return;
+    var room = classReadRoom(sess.code);
+    if (!room) {
+      classLeave();
+      return;
+    }
+    var stu = classReadStudent(sess.code, sess.id);
+    lobbyHi.textContent = 'Hej, ' + sess.name;
+    lobbyRoom.textContent = 'Rum ' + room.code + ' · ' + (room.mode === 'grupper' ? 'Grupper' : 'Hver for sig');
+    var live;
+    if (room.mode === 'grupper') {
+      live = (stu && stu.group)
+        ? ('Du er i gruppe ' + stu.group + '. I venter på, at læreren starter.')
+        : 'Vælg en gruppe. Spillet starter, når læreren trykker Start, eller siger at gruppen er klar.';
+    } else if (!room.gamesOpen) live = 'Læreren har lukket for nye spil.';
+    else live = 'Du kan starte selv, eller vente på at læreren starter.';
+    lobbyStatus.textContent = classLobbyNote ? (classLobbyNote + ' ' + live) : live;
+    lobbyGroups.hidden = room.mode !== 'grupper';
+    var buttons = lobbyGroups.querySelectorAll('button');
+    for (var i = 0; i < buttons.length; i++) {
+      buttons[i].setAttribute('aria-pressed', stu && stu.group === buttons[i].dataset.group ? 'true' : 'false');
+    }
+    lobbyStart.hidden = !(room.mode !== 'grupper' && room.gamesOpen);
+    var snap = JSON.stringify(room) + '|' + JSON.stringify(stu) + '|' + classLobbyNote;
+    classLobbySnap = snap;
+  }
+  function classShowLobby() {
+    invalidate();
+    state.phase = 'start';
+    state.sheetOpen = false;
+    state.teacherPlaying = false;
+    state.classroom = true;
+    classHideScreens();
+    if (topHeader) topHeader.hidden = false;
+    lobbyScreen.hidden = false;
+    classTouchWhere('menu');
+    classRenderLobby();
+  }
+  function classExitToLobby(message) {
+    classLobbyNote = message || '';
+    classShowLobby();
+  }
+  function classTouchWhere(where) {
+    var sess = classSession();
+    if (!sess) return;
+    if (sess.role === 'student') {
+      var stu = classReadStudent(sess.code, sess.id);
+      if (!stu || stu.where === where) return;
+      stu.where = where;
+      classWriteStudentRawFor(sess.code, stu);
+      return;
+    }
+    if (sess.role === 'teacher') {
+      var t = classReadStudent(sess.code, 'teacher');
+      if (!t || t.where === where) return;
+      t.where = where;
+      classWriteStudentRawFor(sess.code, t);
+    }
+  }
+  function classNoteShot(hit) {
+    if (!state.classroom && !state.teacherPlaying) return;
+    var sess = classSession();
+    if (!sess) return;
+    var id = sess.role === 'teacher' ? 'teacher' : sess.id;
+    if (sess.role === 'teacher' && !state.teacherPlaying) return;
+    var stu = classReadStudent(sess.code, id);
+    if (!stu) return;
+    stu.tasks = classNum(stu.tasks) + 1;
+    if (hit) stu.correct = classNum(stu.correct) + 1;
+    else stu.wrong = classNum(stu.wrong) + 1;
+    stu.points = state.players[0] ? state.players[0].score : 0;
+    stu.where = 'playing';
+    classWriteStudentRawFor(sess.code, stu);
+  }
+  function classCanAutoStart() {
+    if (!lobbyScreen.hidden || !learnScreen.hidden || !joinScreen.hidden || !startScreen.hidden) return true;
+    if (!gameScreen.hidden && state.phase === 'win') return true;
+    return false;
+  }
+  function startClassroomGame() {
+    var sess = classSession();
+    if (!sess || sess.role !== 'student') return;
+    classLobbyNote = '';
+    soloNameInput.value = sess.name;
+    var stu = classReadStudent(sess.code, sess.id);
+    if (stu) {
+      stu.points = 0;
+      stu.where = 'playing';
+      classWriteStudentRawFor(sess.code, stu);
+    }
+    startSolo();
+    state.classroom = true;
+    state.teacherPlaying = false;
+    renderUI();
+  }
+  function startTeacherGame(group) {
+    var sess = classSession();
+    var room = classOwnRoom();
+    if (!sess || !room) return;
+    var stu = classReadStudent(room.code, 'teacher') || {
+      id: 'teacher',
+      name: 'Lærer',
+      where: 'menu',
+      points: 0,
+      tasks: 0,
+      correct: 0,
+      wrong: 0,
+      group: null
+    };
+    stu.name = 'Lærer';
+    stu.id = 'teacher';
+    if (room.mode === 'grupper') stu.group = group || stu.group || '1';
+    else stu.group = null;
+    stu.points = 0;
+    stu.where = 'playing';
+    classWriteStudentRawFor(room.code, stu);
+    soloNameInput.value = 'Lærer';
+    startSolo();
+    state.classroom = true;
+    state.teacherPlaying = true;
+    renderUI();
+  }
+  function classBackToTeacher() {
+    classLobbyNote = '';
+    classShowTeacher();
+  }
+  function classCmd(type, group) {
+    var room = classOwnRoom();
+    if (!room) return;
+    room.cmd = { id: ((room.cmd && room.cmd.id) || 0) + 1, type: type, group: group || null };
+    classWriteRoom(room);
+    classTeacherSnap = '';
+    classRenderTeacher(true);
+  }
+  function classSetMode(mode) {
+    var room = classOwnRoom();
+    if (!room) return;
+    room.mode = mode;
+    classWriteRoom(room);
+    classTeacherSnap = '';
+    classRenderTeacher(true);
+  }
+  function classToggleGames() {
+    var room = classOwnRoom();
+    if (!room) return;
+    room.gamesOpen = !room.gamesOpen;
+    classWriteRoom(room);
+    classTeacherSnap = '';
+    classRenderTeacher(true);
+  }
+  function classRenderTeacher(force) {
+    var sess = classSession();
+    if (!sess || sess.role !== 'teacher') return;
+    var room = classReadRoom(sess.code);
+    if (!room || room.token !== sess.token) return;
+    var students = classListStudents(room.code);
+    var snap = JSON.stringify({ mode: room.mode, gamesOpen: room.gamesOpen, cmd: room.cmd, students: students });
+    if (!force && snap === classTeacherSnap) return;
+    classTeacherSnap = snap;
+    teacherTitle.textContent = 'Rum ' + room.code;
+    teacherCode.textContent = 'kode: ' + room.code;
+    var url = classJoinUrl(room.code);
+    if (classQrFor !== url) {
+      drawQr(teacherQr, url);
+      classQrFor = url;
+      teacherLink.href = url;
+      teacherLink.textContent = url;
+    }
+    var grupper = room.mode === 'grupper';
+    teacherModeLabel.textContent = grupper ? 'Grupper' : 'Hver for sig';
+    teacherModeHint.textContent = grupper
+      ? 'Skift til hver for sig, når runden er slut.'
+      : 'Skift til grupper, når runden er slut.';
+    modeAleneBtn.setAttribute('aria-pressed', grupper ? 'false' : 'true');
+    modeGrupperBtn.setAttribute('aria-pressed', grupper ? 'true' : 'false');
+    teacherGamesBtn.textContent = room.gamesOpen ? 'Luk for nye spil' : 'Åbn for nye spil';
+    teacherGamesLabel.textContent = room.gamesOpen ? 'Nye spil er åbne' : 'Nye spil er lukket';
+    teacherPlayBtn.hidden = grupper;
+    teacherPlayGroups.hidden = !grupper;
+    teacherGroupActions.hidden = !grupper;
+    teacherGroupActions.replaceChildren();
+    teacherPlayGroups.replaceChildren();
+    if (grupper) {
+      for (var g = 1; g <= 4; g++) {
+        (function (group) {
+          var count = 0;
+          for (var i = 0; i < students.length; i++) {
+            if (students[i].group === group && students[i].id !== 'teacher') count++;
+          }
+          var readyBtn = document.createElement('button');
+          readyBtn.type = 'button';
+          readyBtn.className = 'btn secondary';
+          readyBtn.textContent = 'Gruppe ' + group + ' er klar' + (count ? ' (' + count + ')' : '');
+          readyBtn.addEventListener('click', function () { classCmd('start', group); });
+          teacherGroupActions.appendChild(readyBtn);
+          var playBtn = document.createElement('button');
+          playBtn.type = 'button';
+          playBtn.className = 'btn';
+          playBtn.textContent = 'Spil i gruppe ' + group;
+          playBtn.addEventListener('click', function () { startTeacherGame(group); });
+          teacherPlayGroups.appendChild(playBtn);
+        })(String(g));
+      }
+    }
+    if (grupper) {
+      var grouped = [];
+      var ready = 0;
+      for (var s = 0; s < students.length; s++) {
+        if (!students[s].group || students[s].id === 'teacher') continue;
+        grouped.push(students[s]);
+        if (students[s].where !== 'playing') ready++;
+      }
+      teacherReady.textContent = grouped.length
+        ? (ready + ' af ' + grouped.length + ' i gruppen er klar')
+        : 'Ingen har valgt gruppe endnu';
+    } else if (!students.length) {
+      teacherReady.textContent = 'Ingen elever endnu';
+    } else if (room.gamesOpen) {
+      teacherReady.textContent = 'Eleverne kan starte selv';
+    } else {
+      teacherReady.textContent = 'Nye spil er lukket';
+    }
+    teacherBody.replaceChildren();
+    var visible = [];
+    for (var n = 0; n < students.length; n++) {
+      if (students[n].id === 'teacher' && students[n].where === 'menu' && !classNum(students[n].tasks)) continue;
+      visible.push(students[n]);
+    }
+    teacherEmpty.hidden = visible.length > 0;
+    for (var r = 0; r < visible.length; r++) {
+      var st = visible[r];
+      var info = classWhereInfo(st, room.mode);
+      var tr = document.createElement('tr');
+      var nameTd = document.createElement('td');
+      nameTd.textContent = st.name || 'Elev';
+      tr.appendChild(nameTd);
+      var whereTd = document.createElement('td');
+      var tag = document.createElement('span');
+      tag.className = 'tag ' + info.cls;
+      tag.textContent = info.text;
+      whereTd.appendChild(tag);
+      tr.appendChild(whereTd);
+      tr.appendChild(classTd(String(classNum(st.points))));
+      tr.appendChild(classTd(String(classNum(st.tasks))));
+      tr.appendChild(classTd(String(classNum(st.correct))));
+      tr.appendChild(classTd(String(classNum(st.wrong))));
+      tr.appendChild(classTd(classRatio(st.correct, st.wrong)));
+      teacherBody.appendChild(tr);
+    }
+  }
+  function classConsume(room) {
+    var sess = classSession();
+    if (!sess || sess.role !== 'student') return;
+    if (!room.cmd || room.cmd.id <= (sess.lastCmd || 0)) return;
+    sess.lastCmd = room.cmd.id;
+    classSaveSession(sess);
+    if (room.cmd.type === 'menu') {
+      classExitToLobby('Læreren sendte alle til menuen.');
+      return;
+    }
+    if (room.cmd.type === 'start') {
+      var stu = classReadStudent(sess.code, sess.id);
+      if (room.mode === 'grupper') {
+        if (!stu || !stu.group) return;
+        if (room.cmd.group && room.cmd.group !== stu.group) return;
+      }
+      if (!classCanAutoStart()) return;
+      startClassroomGame();
+    }
+  }
+  function classCreateRoom() {
+    var code = classMakeCode();
+    var token = classRand(12);
+    var room = {
+      code: code,
+      token: token,
+      mode: 'alene',
+      gamesOpen: true,
+      cmd: { id: 0, type: 'none', group: null }
+    };
+    classWriteRoom(room);
+    classSaveSession({ role: 'teacher', code: code, token: token });
+    classSetQuery(code);
+    classQrFor = '';
+    classShowTeacher();
+  }
+  function classJoin(code, name) {
+    var room = classReadRoom(code);
+    if (!room) return 'Der er ikke noget rum med den kode i denne browser. Telefoner deler ikke rum endnu, så koden skal bruges i samme browser.';
+    var id = classRand(8);
+    classSaveSession({ role: 'student', code: code, id: id, name: name, lastCmd: room.cmd ? room.cmd.id : 0 });
+    classWriteStudentRawFor(code, {
+      id: id,
+      name: name,
+      where: 'menu',
+      points: 0,
+      tasks: 0,
+      correct: 0,
+      wrong: 0,
+      group: null
+    });
+    classSetQuery(code);
+    classLobbyNote = '';
+    classShowLobby();
+    return '';
+  }
+  function classLeave() {
+    var sess = classSession();
+    if (sess && sess.role === 'student') {
+      localStorage.removeItem(classStuKey(sess.code, sess.id));
+      classPing();
+    }
+    classSaveSession(null);
+    state.classroom = false;
+    state.teacherPlaying = false;
+    classSetQuery('');
+    classShowStart();
+  }
+  function classTick() {
+    var sess = classSession();
+    if (!sess) return;
+    if (sess.role === 'teacher') {
+      if (!teacherScreen.hidden) classRenderTeacher(false);
+      return;
+    }
+    var room = classReadRoom(sess.code);
+    if (!room) return;
+    classConsume(room);
+    if (!lobbyScreen.hidden) {
+      var stu = classReadStudent(sess.code, sess.id);
+      var snap = JSON.stringify(room) + '|' + JSON.stringify(stu) + '|' + classLobbyNote;
+      if (snap !== classLobbySnap) classRenderLobby();
+    }
+  }
+  function classBoot() {
+    for (var g = 1; g <= 4; g++) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.dataset.group = String(g);
+      b.textContent = 'Gruppe ' + g;
+      b.setAttribute('aria-pressed', 'false');
+      lobbyGroups.appendChild(b);
+    }
+    var rum = '';
+    try { rum = classNormCode(new URLSearchParams(location.search).get('rum') || ''); }
+    catch (e) { rum = ''; }
+    var sess = classSession();
+    if (sess && sess.role === 'teacher') {
+      var room = classReadRoom(sess.code);
+      if (room && room.token === sess.token) {
+        classShowTeacher();
+        return;
+      }
+    }
+    if (sess && sess.role === 'student') {
+      var roomS = classReadRoom(sess.code);
+      var stu = classReadStudent(sess.code, sess.id);
+      if (roomS && stu) {
+        if (stu.where === 'playing' || stu.where === 'learn') {
+          stu.where = 'menu';
+          classWriteStudentRawFor(sess.code, stu);
+        }
+        classShowLobby();
+        return;
+      }
+    }
+    if (rum) classShowJoin(rum);
+    else classSyncStartLink();
+  }
+
+  pickTeacher.addEventListener('click', function () {
+    pickSolo.setAttribute('aria-pressed', 'false');
+    pickMulti.setAttribute('aria-pressed', 'false');
+    soloForm.hidden = true;
+    multiForm.hidden = true;
+    classCreateRoom();
+  });
+  pickStudent.addEventListener('click', function () {
+    pickSolo.setAttribute('aria-pressed', 'false');
+    pickMulti.setAttribute('aria-pressed', 'false');
+    soloForm.hidden = true;
+    multiForm.hidden = true;
+    var pre = '';
+    try { pre = classNormCode(new URLSearchParams(location.search).get('rum') || ''); }
+    catch (e) { pre = ''; }
+    classShowJoin(pre);
+  });
+  joinForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var code = classNormCode(joinCodeInput.value);
+    var name = cleanName(joinNameInput.value, '');
+    if (!code) {
+      joinError.hidden = false;
+      joinError.textContent = 'Skriv koden med 6 tegn, f.eks. AB-CDEF.';
+      return;
+    }
+    if (!name) {
+      joinError.hidden = false;
+      joinError.textContent = 'Skriv dit navn.';
+      return;
+    }
+    var err = classJoin(code, name);
+    joinError.hidden = !err;
+    joinError.textContent = err || '';
+  });
+  joinBackBtn.addEventListener('click', classShowStart);
+  modeAleneBtn.addEventListener('click', function () { classSetMode('alene'); });
+  modeGrupperBtn.addEventListener('click', function () { classSetMode('grupper'); });
+  teacherStartBtn.addEventListener('click', function () { classCmd('start', null); });
+  teacherMenuBtn.addEventListener('click', function () { classCmd('menu', null); });
+  teacherGamesBtn.addEventListener('click', classToggleGames);
+  teacherLearnBtn.addEventListener('click', function () {
+    learnReturn = 'teacher';
+    learnBackBtn.textContent = 'Til lærermenuen';
+    openLearn();
+  });
+  teacherPlayBtn.addEventListener('click', function () { startTeacherGame(null); });
+  teacherFrontBtn.addEventListener('click', classShowStart);
+  teacherCopy.addEventListener('click', function () {
+    var url = teacherLink.href || teacherLink.textContent;
+    function done(ok) { teacherCopy.textContent = ok ? 'Kopieret' : 'Kopiér link'; }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(function () { done(true); }, function () { done(false); });
+    } else done(false);
+    window.setTimeout(function () { teacherCopy.textContent = 'Kopiér link'; }, 1600);
+  });
+  lobbyGroups.addEventListener('click', function (e) {
+    var btn = e.target.closest ? e.target.closest('button') : null;
+    if (!btn || !btn.dataset.group) return;
+    var sess = classSession();
+    if (!sess) return;
+    var stu = classReadStudent(sess.code, sess.id);
+    if (!stu) return;
+    stu.group = btn.dataset.group;
+    stu.where = 'menu';
+    classWriteStudentRawFor(sess.code, stu);
+    classLobbyNote = '';
+    classRenderLobby();
+  });
+  lobbyStart.addEventListener('click', function () {
+    var sess = classSession();
+    if (!sess) return;
+    var room = classReadRoom(sess.code);
+    if (!room || room.mode === 'grupper' || !room.gamesOpen) {
+      classLobbyNote = 'Læreren har lukket for nye spil.';
+      classRenderLobby();
+      return;
+    }
+    startClassroomGame();
+  });
+  lobbyLearn.addEventListener('click', function () {
+    learnReturn = 'lobby';
+    learnBackBtn.textContent = 'Tilbage';
+    openLearn();
+  });
+  lobbyLeave.addEventListener('click', classLeave);
+  backRoomBtn.addEventListener('click', function () {
+    var sess = classSession();
+    if (!sess) return;
+    if (sess.role === 'teacher') classShowTeacher();
+    else classShowLobby();
+  });
+  toTeacherBtn.addEventListener('click', classBackToTeacher);
+  winToTeacherBtn.addEventListener('click', classBackToTeacher);
+  window.setInterval(classTick, 700);
+  window.addEventListener('storage', classTick);
+  if (classBC) classBC.onmessage = classTick;
+  classBoot();
+
   updatePreview();
 })();
 </script>
