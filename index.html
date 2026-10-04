@@ -572,6 +572,7 @@
 </head>
 <body>
 <div class="page">
+  <p id="class-net" class="error" role="alert" hidden></p>
   <header class="top">
     <svg class="mark" viewBox="0 0 48 48" aria-hidden="true">
       <rect x="1.5" y="1.5" width="45" height="45" rx="12" fill="#fffdf8" stroke="#e5d8c6"></rect>
@@ -713,7 +714,7 @@
     <div class="room-page">
       <h2 id="teacher-title">Rum</h2>
       <p class="room-lead">Eleverne åbner linket eller scanner koden.</p>
-      <p class="fine">To faner i samme browser kan være lærer og elev. Telefoner deler ikke rummet endnu.</p>
+      <p class="fine">Eleverne åbner linket på deres egen telefon. Samme kode er samme rum.</p>
       <div class="room-row">
         <div class="room-card">
           <canvas id="teacher-qr" width="148" height="148" aria-label="QR-kode til elevernes link"></canvas>
@@ -2544,12 +2545,25 @@ function qrMatrix(text, maskForce) {
 }
 
 
-  // sammenskudsgilde-848aa har en offentlig Firebase-nøgle, men firestore.rules
-  // afviser alle samlinger undtagen parties. Rummet ligger derfor i localStorage,
-  // så lærer og elev kan prøves i to faner. Telefoner deler ikke rummet.
+  // Klasse-rum i Firestore-samlingen funktionPunktSkyderRooms (projekt sammenskudsgilde).
+  // Den offentlige web-nøgle er den samme som i sammenskudsgilde. Adgang styres af firestore.rules:
+  // kun denne samling, ingen listning, og kun læreren kan ændre rummet.
+  var FPS_FIREBASE = {
+    apiKey: 'AIzaSyB7KrVosbXqzcmfmjPDfQS7R6L0PO1rH8U',
+    authDomain: 'sammenskudsgilde-848aa.firebaseapp.com',
+    projectId: 'sammenskudsgilde-848aa',
+    storageBucket: 'sammenskudsgilde-848aa.firebasestorage.app',
+    messagingSenderId: '425323133361',
+    appId: '1:425323133361:web:f2b4d9f0552d42f2752590'
+  };
+  var FPS_COLLECTION = 'funktionPunktSkyderRooms';
   var CLASS_SESS = 'fps-klasse-session';
-  var classBC = null;
-  try { classBC = new BroadcastChannel('fps-klasse'); } catch (e) { classBC = null; }
+  var classFs = null;
+  var classDb = null;
+  var classUid = '';
+  var classAuthReady = null;
+  var classUnsubs = [];
+  var classCache = { code: '', room: null, students: [], roomSeen: false, playersSeen: false };
   var classQrFor = '';
   var classTeacherSnap = '';
   var classLobbySnap = '';
@@ -2558,6 +2572,7 @@ function qrMatrix(text, maskForce) {
   var teacherScreen = document.getElementById('screen-teacher');
   var joinScreen = document.getElementById('screen-join');
   var lobbyScreen = document.getElementById('screen-lobby');
+  var classNet = document.getElementById('class-net');
   var teacherTitle = document.getElementById('teacher-title');
   var teacherCode = document.getElementById('teacher-code');
   var teacherLink = document.getElementById('teacher-link');
@@ -2598,10 +2613,47 @@ function qrMatrix(text, maskForce) {
   var toTeacherBtn = document.getElementById('to-teacher');
   var winToTeacherBtn = document.getElementById('win-to-teacher');
 
-  function classPing() {
-    if (classBC) {
-      try { classBC.postMessage(1); } catch (e) {}
+  function classNetError(msg) {
+    if (!classNet) return;
+    if (!msg) { classNet.hidden = true; classNet.textContent = ''; return; }
+    classNet.hidden = false;
+    classNet.textContent = msg;
+  }
+  function classErrText(err) {
+    var code = (err && err.code) ? String(err.code) : '';
+    if (code.indexOf('permission-denied') >= 0) {
+      return 'Firebase afviste rummet. Reglerne for klasse-rum er ikke slået til endnu.';
     }
+    return 'Kunne ikke forbinde til rummet. Prøv igen.';
+  }
+  function classFirebase() {
+    if (classAuthReady) return classAuthReady;
+    classAuthReady = (async function () {
+      var base = 'https://www.gstatic.com/firebasejs/12.19.0/';
+      var appM = await import(base + 'firebase-app.js');
+      var authM = await import(base + 'firebase-auth.js');
+      var fs = await import(base + 'firebase-firestore.js');
+      var app = appM.initializeApp(FPS_FIREBASE);
+      var auth = authM.getAuth(app);
+      var db;
+      try {
+        db = fs.initializeFirestore(app, {
+          localCache: fs.persistentLocalCache({ tabManager: fs.persistentMultipleTabManager() })
+        });
+      } catch (e) {
+        db = fs.getFirestore(app);
+      }
+      var user = await new Promise(function (resolve, reject) {
+        var off = authM.onAuthStateChanged(auth, function (u) {
+          if (u) { off(); resolve(u); }
+          else authM.signInAnonymously(auth).catch(function (err) { off(); reject(err); });
+        }, reject);
+      });
+      classFs = fs;
+      classDb = db;
+      classUid = user.uid;
+    })();
+    return classAuthReady;
   }
   function classSession() {
     try { return JSON.parse(sessionStorage.getItem(CLASS_SESS) || 'null'); }
@@ -2615,9 +2667,6 @@ function qrMatrix(text, maskForce) {
     var s = classSession();
     return !!(s && s.role === 'student');
   }
-  function classRoomKey(code) { return 'fps-klasse-rum:' + code; }
-  function classStuPrefix(code) { return 'fps-klasse-elev:' + code + ':'; }
-  function classStuKey(code, id) { return classStuPrefix(code) + id; }
   function classRand(n) {
     var alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     var s = '';
@@ -2629,46 +2678,143 @@ function qrMatrix(text, maskForce) {
     for (var j = 0; j < n; j++) s += alphabet[bytes[j] % alphabet.length];
     return s;
   }
-  function classMakeCode() {
-    var raw = classRand(6);
-    var code = raw.slice(0, 2) + '-' + raw.slice(2);
-    if (localStorage.getItem(classRoomKey(code))) return classMakeCode();
-    return code;
-  }
   function classNormCode(raw) {
     var t = String(raw || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
     if (t.length !== 6) return '';
     return t.slice(0, 2) + '-' + t.slice(2);
   }
+  function classRoomFromData(id, d) {
+    d = d || {};
+    var cmd = d.cmd || {};
+    var type = (cmd.type === 'start' || cmd.type === 'menu') ? cmd.type : 'none';
+    var group = (cmd.group === '1' || cmd.group === '2' || cmd.group === '3' || cmd.group === '4') ? cmd.group : null;
+    return {
+      code: d.code || id,
+      teacherUid: d.teacherUid || '',
+      mode: d.mode === 'grupper' ? 'grupper' : 'alene',
+      gamesOpen: d.gamesOpen !== false,
+      cmd: { id: classNum(cmd.id), type: type, group: group }
+    };
+  }
+  function classStopWatch() {
+    for (var i = 0; i < classUnsubs.length; i++) {
+      try { classUnsubs[i](); } catch (e) {}
+    }
+    classUnsubs = [];
+  }
+  function classOnRemote() { classTick(); }
+  function classWatch(code) {
+    classStopWatch();
+    classCache = { code: code, room: null, students: [], roomSeen: false, playersSeen: false };
+    var roomRef = classFs.doc(classDb, FPS_COLLECTION, code);
+    var playersRef = classFs.collection(classDb, FPS_COLLECTION, code, 'players');
+    return new Promise(function (resolve) {
+      var settled = false;
+      function trySettle() {
+        if (settled) return;
+        if (classCache.roomSeen && classCache.playersSeen) {
+          settled = true;
+          resolve();
+        }
+      }
+      classUnsubs.push(classFs.onSnapshot(roomRef, function (snap) {
+        classCache.room = snap.exists() ? classRoomFromData(snap.id, snap.data()) : null;
+        var first = !classCache.roomSeen;
+        classCache.roomSeen = true;
+        if (first) trySettle();
+        else classOnRemote();
+      }, function (err) {
+        classCache.room = null;
+        classCache.roomSeen = true;
+        classNetError(classErrText(err));
+        trySettle();
+      }));
+      classUnsubs.push(classFs.onSnapshot(playersRef, function (qs) {
+        var out = [];
+        qs.forEach(function (docSnap) { out.push(docSnap.data()); });
+        out.sort(function (a, b) {
+          return String(a.name || '').localeCompare(String(b.name || ''), 'da');
+        });
+        classCache.students = out;
+        var firstP = !classCache.playersSeen;
+        classCache.playersSeen = true;
+        if (firstP) trySettle();
+        else classOnRemote();
+      }, function (err) {
+        classCache.playersSeen = true;
+        classNetError(classErrText(err));
+        trySettle();
+      }));
+    });
+  }
   function classReadRoom(code) {
-    try { return JSON.parse(localStorage.getItem(classRoomKey(code)) || 'null'); }
-    catch (e) { return null; }
+    if (!code || classCache.code !== code) return null;
+    return classCache.room;
+  }
+  function classCmdPayload(cmd) {
+    cmd = cmd || {};
+    var type = (cmd.type === 'start' || cmd.type === 'menu') ? cmd.type : 'none';
+    var group = (cmd.group === '1' || cmd.group === '2' || cmd.group === '3' || cmd.group === '4') ? cmd.group : null;
+    return { id: classNum(cmd.id), type: type, group: group };
   }
   function classWriteRoom(room) {
-    localStorage.setItem(classRoomKey(room.code), JSON.stringify(room));
-    classPing();
+    classCache.room = room;
+    classCache.code = room.code;
+    return classFs.updateDoc(classFs.doc(classDb, FPS_COLLECTION, room.code), {
+      mode: room.mode === 'grupper' ? 'grupper' : 'alene',
+      gamesOpen: !!room.gamesOpen,
+      cmd: classCmdPayload(room.cmd)
+    }).catch(function (err) { classNetError(classErrText(err)); });
   }
   function classReadStudent(code, id) {
-    try { return JSON.parse(localStorage.getItem(classStuKey(code, id)) || 'null'); }
-    catch (e) { return null; }
+    if (classCache.code !== code) return null;
+    for (var i = 0; i < classCache.students.length; i++) {
+      if (classCache.students[i].id === id) return classCache.students[i];
+    }
+    return null;
+  }
+  function classPlayerPayload(stu) {
+    var group = (stu.group === '1' || stu.group === '2' || stu.group === '3' || stu.group === '4') ? stu.group : null;
+    var where = (stu.where === 'playing' || stu.where === 'learn') ? stu.where : 'menu';
+    var name = cleanName(stu.name, stu.id === 'teacher' ? 'Lærer' : 'Elev');
+    return {
+      id: String(stu.id).slice(0, 20),
+      name: name,
+      where: where,
+      points: classNum(stu.points),
+      tasks: classNum(stu.tasks),
+      correct: classNum(stu.correct),
+      wrong: classNum(stu.wrong),
+      group: group,
+      ownerUid: classUid,
+      updated: Date.now()
+    };
   }
   function classWriteStudentRawFor(code, stu) {
-    stu.updated = Date.now();
-    localStorage.setItem(classStuKey(code, stu.id), JSON.stringify(stu));
-    classPing();
-  }
-  function classListStudents(code) {
-    var prefix = classStuPrefix(code);
-    var out = [];
-    for (var i = 0; i < localStorage.length; i++) {
-      var k = localStorage.key(i);
-      if (!k || k.indexOf(prefix) !== 0) continue;
-      try { out.push(JSON.parse(localStorage.getItem(k))); } catch (e) {}
+    var data = classPlayerPayload(stu);
+    stu.updated = data.updated;
+    stu.name = data.name;
+    stu.where = data.where;
+    stu.group = data.group;
+    var next = [];
+    var found = false;
+    for (var i = 0; i < classCache.students.length; i++) {
+      if (classCache.students[i].id === stu.id) { next.push(stu); found = true; }
+      else next.push(classCache.students[i]);
     }
-    out.sort(function (a, b) {
+    if (!found) next.push(stu);
+    next.sort(function (a, b) {
       return String(a.name || '').localeCompare(String(b.name || ''), 'da');
     });
-    return out;
+    classCache.students = next;
+    classCache.code = code;
+    return classFs.setDoc(classFs.doc(classDb, FPS_COLLECTION, code, 'players', stu.id), data).catch(function (err) {
+      classNetError(classErrText(err));
+    });
+  }
+  function classListStudents(code) {
+    if (classCache.code !== code) return [];
+    return classCache.students.slice();
   }
   function classTd(text) {
     var td = document.createElement('td');
@@ -2742,7 +2888,7 @@ function qrMatrix(text, maskForce) {
   function classSyncStartLink() {
     var sess = classSession();
     var room = sess ? classReadRoom(sess.code) : null;
-    var show = !!(sess && room && (sess.role !== 'teacher' || room.token === sess.token));
+    var show = !!(sess && room && (sess.role === 'student' || room.teacherUid === classUid));
     backRoomWrap.hidden = !show;
     if (!show) return;
     backRoomBtn.textContent = sess.role === 'teacher' ? 'Tilbage til lærermenuen' : 'Tilbage til rummet';
@@ -2757,7 +2903,7 @@ function qrMatrix(text, maskForce) {
     var sess = classSession();
     if (!sess || sess.role !== 'teacher') return null;
     var room = classReadRoom(sess.code);
-    if (!room || room.token !== sess.token) return null;
+    if (!room || room.teacherUid !== classUid) return null;
     return room;
   }
   function classShowTeacher() {
@@ -2944,7 +3090,7 @@ function qrMatrix(text, maskForce) {
     var sess = classSession();
     if (!sess || sess.role !== 'teacher') return;
     var room = classReadRoom(sess.code);
-    if (!room || room.token !== sess.token) return;
+    if (!room || room.teacherUid !== classUid) return;
     var students = classListStudents(room.code);
     var snap = JSON.stringify({ mode: room.mode, gamesOpen: room.gamesOpen, cmd: room.cmd, students: students });
     if (!force && snap === classTeacherSnap) return;
@@ -3060,28 +3206,52 @@ function qrMatrix(text, maskForce) {
       startClassroomGame();
     }
   }
-  function classCreateRoom() {
-    var code = classMakeCode();
-    var token = classRand(12);
-    var room = {
+  async function classMakeCode() {
+    for (var n = 0; n < 8; n++) {
+      var raw = classRand(6);
+      var code = raw.slice(0, 2) + '-' + raw.slice(2);
+      var snap = await classFs.getDoc(classFs.doc(classDb, FPS_COLLECTION, code));
+      if (!snap.exists()) return code;
+    }
+    var err = new Error('kode');
+    err.code = 'unavailable';
+    throw err;
+  }
+  async function classCreateRoom() {
+    classNetError('');
+    await classFirebase();
+    var code = await classMakeCode();
+    await classFs.setDoc(classFs.doc(classDb, FPS_COLLECTION, code), {
       code: code,
-      token: token,
+      teacherUid: classUid,
       mode: 'alene',
       gamesOpen: true,
-      cmd: { id: 0, type: 'none', group: null }
-    };
-    classWriteRoom(room);
-    classSaveSession({ role: 'teacher', code: code, token: token });
+      cmd: { id: 0, type: 'none', group: null },
+      createdAt: classFs.serverTimestamp()
+    });
+    classSaveSession({ role: 'teacher', code: code });
+    await classWatch(code);
+    if (!classReadRoom(code) || classReadRoom(code).teacherUid !== classUid) {
+      var denied = new Error('permission');
+      denied.code = 'permission-denied';
+      throw denied;
+    }
     classSetQuery(code);
     classQrFor = '';
+    classTeacherSnap = '';
     classShowTeacher();
   }
-  function classJoin(code, name) {
-    var room = classReadRoom(code);
-    if (!room) return 'Der er ikke noget rum med den kode i denne browser. Telefoner deler ikke rum endnu, så koden skal bruges i samme browser.';
+  async function classJoin(code, name) {
+    classNetError('');
+    await classFirebase();
+    var snap = await classFs.getDoc(classFs.doc(classDb, FPS_COLLECTION, code));
+    if (!snap.exists()) return 'Der er ikke noget rum med den kode. Tjek koden, eller åbn linket fra læreren.';
+    var room = classRoomFromData(snap.id, snap.data());
     var id = classRand(8);
     classSaveSession({ role: 'student', code: code, id: id, name: name, lastCmd: room.cmd ? room.cmd.id : 0 });
-    classWriteStudentRawFor(code, {
+    await classWatch(code);
+    if (!classReadRoom(code)) return 'Rummet kunne ikke åbnes. Prøv igen.';
+    await classWriteStudentRawFor(code, {
       id: id,
       name: name,
       where: 'menu',
@@ -3098,10 +3268,12 @@ function qrMatrix(text, maskForce) {
   }
   function classLeave() {
     var sess = classSession();
-    if (sess && sess.role === 'student') {
-      localStorage.removeItem(classStuKey(sess.code, sess.id));
-      classPing();
+    if (sess && sess.role === 'student' && classFs && classDb) {
+      var gone = sess;
+      classFs.deleteDoc(classFs.doc(classDb, FPS_COLLECTION, gone.code, 'players', gone.id)).catch(function () {});
     }
+    classStopWatch();
+    classCache = { code: '', room: null, students: [], roomSeen: false, playersSeen: false };
     classSaveSession(null);
     state.classroom = false;
     state.teacherPlaying = false;
@@ -3124,7 +3296,7 @@ function qrMatrix(text, maskForce) {
       if (snap !== classLobbySnap) classRenderLobby();
     }
   }
-  function classBoot() {
+  async function classBoot() {
     for (var g = 1; g <= 4; g++) {
       var b = document.createElement('button');
       b.type = 'button';
@@ -3137,24 +3309,39 @@ function qrMatrix(text, maskForce) {
     try { rum = classNormCode(new URLSearchParams(location.search).get('rum') || ''); }
     catch (e) { rum = ''; }
     var sess = classSession();
+    try {
+      if (sess) await classFirebase();
+    } catch (err) {
+      classNetError(classErrText(err));
+      classSaveSession(null);
+      if (rum) classShowJoin(rum);
+      return;
+    }
     if (sess && sess.role === 'teacher') {
+      await classWatch(sess.code);
       var room = classReadRoom(sess.code);
-      if (room && room.token === sess.token) {
+      if (room && room.teacherUid === classUid) {
         classShowTeacher();
         return;
       }
-    }
-    if (sess && sess.role === 'student') {
+      classSaveSession(null);
+      classStopWatch();
+      classCache = { code: '', room: null, students: [], roomSeen: false, playersSeen: false };
+    } else if (sess && sess.role === 'student') {
+      await classWatch(sess.code);
       var roomS = classReadRoom(sess.code);
       var stu = classReadStudent(sess.code, sess.id);
       if (roomS && stu) {
         if (stu.where === 'playing' || stu.where === 'learn') {
           stu.where = 'menu';
-          classWriteStudentRawFor(sess.code, stu);
+          await classWriteStudentRawFor(sess.code, stu);
         }
         classShowLobby();
         return;
       }
+      classSaveSession(null);
+      classStopWatch();
+      classCache = { code: '', room: null, students: [], roomSeen: false, playersSeen: false };
     }
     if (rum) classShowJoin(rum);
     else classSyncStartLink();
@@ -3165,7 +3352,14 @@ function qrMatrix(text, maskForce) {
     pickMulti.setAttribute('aria-pressed', 'false');
     soloForm.hidden = true;
     multiForm.hidden = true;
-    classCreateRoom();
+    pickTeacher.disabled = true;
+    classCreateRoom().then(function () {
+      pickTeacher.disabled = false;
+    }, function (err) {
+      pickTeacher.disabled = false;
+      classNetError(classErrText(err));
+      classShowStart();
+    });
   });
   pickStudent.addEventListener('click', function () {
     pickSolo.setAttribute('aria-pressed', 'false');
@@ -3191,9 +3385,17 @@ function qrMatrix(text, maskForce) {
       joinError.textContent = 'Skriv dit navn.';
       return;
     }
-    var err = classJoin(code, name);
-    joinError.hidden = !err;
-    joinError.textContent = err || '';
+    var submitBtn = joinForm.querySelector('button[type="submit"]');
+    if (submitBtn) submitBtn.disabled = true;
+    classJoin(code, name).then(function (err) {
+      if (submitBtn) submitBtn.disabled = false;
+      joinError.hidden = !err;
+      joinError.textContent = err || '';
+    }, function (ex) {
+      if (submitBtn) submitBtn.disabled = false;
+      joinError.hidden = false;
+      joinError.textContent = classErrText(ex);
+    });
   });
   joinBackBtn.addEventListener('click', classShowStart);
   modeAleneBtn.addEventListener('click', function () { classSetMode('alene'); });
@@ -3254,10 +3456,7 @@ function qrMatrix(text, maskForce) {
   });
   toTeacherBtn.addEventListener('click', classBackToTeacher);
   winToTeacherBtn.addEventListener('click', classBackToTeacher);
-  window.setInterval(classTick, 700);
-  window.addEventListener('storage', classTick);
-  if (classBC) classBC.onmessage = classTick;
-  classBoot();
+  classBoot().catch(function (err) { classNetError(classErrText(err)); });
 
   updatePreview();
 })();

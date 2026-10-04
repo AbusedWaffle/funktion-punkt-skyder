@@ -18,3 +18,6 @@ Punkterne ligger på heltalsgitteret. x går fra 1 til 10, og y fra 0 til 10. Du
 Først til 10 point vinder. Spiller I flere, kåres vinderen først, når runden er færdig, og kun hvis én spiller alene ligger forrest.
 
 Minusknappen ved a og b skifter fortegn, også når telefonens tastatur ikke har minus.
+
+## Klassen
+Læreren vælger **Jeg er lærer** og får en kode, et link og en QR-kode. Eleverne åbner linket på deres egen telefon, eller vælger **Jeg er elev** og skriver koden. Rummet ligger i Firebase, så lærerens telefon og elevernes telefoner deler det samme rum.
