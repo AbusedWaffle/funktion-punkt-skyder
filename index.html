@@ -665,6 +665,7 @@
       <div class="rules-body">
         <p>Du skyder et punkt med en lineær funktion <strong>f(x) = ax + b</strong>. Skuddet rammer, hvis punktets y-værdi passer med a·x + b, med en absolut margen på 0,02. Det er midten af mærket, der tæller.</p>
         <p>Der går uendeligt mange rette linjer gennem ét punkt. Spillet siger aldrig, hvilken a eller b der er den rigtige.</p>
+        <p>Efter hvert skud får du straks at vide, om det ramte. Rammer du forbi, siger spillet hvor mange enheder linjen er over eller under punktet.</p>
         <p>Først til 10 point vinder.</p>
         <p><strong>Én spiller.</strong> Computeren lægger et punkt med hele koordinater. x er fra 1 til 10, og y er fra 0 til 10. Rammer du, får du 1 point og et nyt punkt. Rammer du forbi, tegnes linjen, og du må prøve igen på samme punkt.</p>
         <p><strong>Flere spillere.</strong> I lægger på skift hver jeres punkt på et ledigt gitterpunkt ved samme skærm. På din tur skyder du ét af modstandernes punkter.</p>
@@ -674,7 +675,7 @@
           <li>En runde er ét skud fra hver spiller. Når nogen når 10, skyder de andre runden færdig. Bagefter vinder den, der alene har flest point, hvis det er mindst 10. Står flere lige øverst, spilles en runde mere.</li>
         </ul>
         <p>Punkter på y-aksen (x = 0) bruges ikke, fordi enhver linje med den rigtige b ville ramme dem.</p>
-        <p><strong>Lærer og elever.</strong> Læreren opretter et rum. Eleverne går med med kode eller link og et navn. I grupper starter spillet, når læreren trykker Start, eller siger at gruppen er klar. Læreren kan lukke for nye spil, sende alle til menuen og selv hoppe ind i spillet. Under spillet er der altid en knap tilbage til lærermenuen.</p>
+        <p><strong>Lærer og elever.</strong> Læreren opretter et rum. Eleverne går med med kode eller link og et navn. I grupper starter spillet, når læreren trykker Start, eller siger at gruppen er klar. Læreren kan lukke for nye spil, sende alle til menuen og selv hoppe ind i spillet. Under spillet er der altid en knap tilbage til lærermenuen. Læreren vælger sværhedsgrad for rummet. Uden for et rum kan a og b være frie tal.</p>
       </div>
     </details>
   </section>
@@ -730,6 +731,15 @@
             <button type="button" class="btn secondary" id="mode-grupper" aria-pressed="false">Grupper</button>
           </div>
           <div class="fine" id="teacher-mode-hint">Skift til grupper, når runden er slut.</div>
+        </div>
+        <div class="room-card mode">
+          <div class="fine">Sværhedsgrad</div>
+          <strong id="teacher-diff-label">Kun positive tal</strong>
+          <div class="room-actions">
+            <button type="button" class="btn secondary" id="diff-positive" aria-pressed="true">Kun positive tal</button>
+            <button type="button" class="btn secondary" id="diff-quarters" aria-pressed="false">Også brøker</button>
+          </div>
+          <div class="fine" id="teacher-diff-hint">a og b fra 0 til 10, i spring på 0,25. Punkter i 1. kvadrant.</div>
         </div>
         <div class="room-card">
           <button type="button" class="btn" id="teacher-start">Start spillet</button>
@@ -858,6 +868,7 @@
           <p id="preview" class="preview">f(x) = …</p>
           <button id="shoot" class="btn" type="submit">Skyd</button>
         </div>
+        <p id="shot-limit" class="fine" hidden></p>
         <p id="form-error" class="error" role="alert" hidden></p>
       </form>
     </div>
@@ -1008,6 +1019,7 @@
   }
   var previewEl = document.getElementById('preview');
   var formErrorEl = document.getElementById('form-error');
+  var shotLimitEl = document.getElementById('shot-limit');
   var shootBtn = document.getElementById('shoot');
   var winCard = document.getElementById('win-card');
   var winTitle = document.getElementById('win-title');
@@ -1093,10 +1105,43 @@
     return false;
   }
 
+  function isQuarterStep(n) {
+    return Math.abs(n * 4 - Math.round(n * 4)) < 1e-6;
+  }
+
+  function roomPlayLimits() {
+    if (!state.classroom && !state.teacherPlaying) return null;
+    var sess = classSession();
+    var room = sess ? classReadRoom(sess.code) : null;
+    if (room && room.difficulty === 'quarters') {
+      return {
+        min: -10,
+        max: 10,
+        yMin: 0,
+        hint: 'Også brøker: a og b fra −10 til 10, i spring på 0,25.',
+        error: 'I dette rum skal a og b være fra −10 til 10, i spring på 0,25.'
+      };
+    }
+    return {
+      min: 0,
+      max: 10,
+      yMin: 1,
+      hint: 'Kun positive tal: a og b fra 0 til 10, i spring på 0,25.',
+      error: 'I dette rum skal a og b være fra 0 til 10, i spring på 0,25. Ikke negative tal.'
+    };
+  }
+
+  function coefAllowed(n, lim) {
+    if (n < lim.min - 1e-9 || n > lim.max + 1e-9) return false;
+    return isQuarterStep(n);
+  }
+
   function randomTarget() {
+    var lim = roomPlayLimits();
+    var yMin = lim ? lim.yMin : 0;
     return {
       x: 1 + Math.floor(Math.random() * 10),
-      y: Math.floor(Math.random() * 11)
+      y: yMin + Math.floor(Math.random() * (11 - yMin))
     };
   }
 
@@ -1690,6 +1735,9 @@
     shootBtn.disabled = lockInputs;
     formErrorEl.hidden = !state.formError;
     formErrorEl.textContent = state.formError || '';
+    var playLim = roomPlayLimits();
+    shotLimitEl.hidden = !playLim;
+    shotLimitEl.textContent = playLim ? playLim.hint : '';
     coefA.setAttribute('aria-invalid', state.formError ? 'true' : 'false');
     coefB.setAttribute('aria-invalid', state.formError ? 'true' : 'false');
     updatePreview();
@@ -1900,12 +1948,13 @@
     againBtn.focus();
   }
 
-  function missText(fn, a, b, x, y) {
-    var yLine = a * x + b;
-    var diff = Math.abs(y - yLine);
-    var text = 'Forbi med ' + fn + '. Ved x = ' + x + ' er y = ' + formatNum(yLine) + ', men punktet har y = ' + y + '. Forskel: ' + formatNum(diff) + '.';
+  function missText(a, b, x, y) {
+    var delta = (a * x + b) - y;
+    var diff = Math.round(Math.abs(delta) * 10000) / 10000;
+    var mag = formatNum(diff);
+    var where = delta > 0 ? 'over' : 'under';
+    var text = 'Forbi. Linjen er ' + mag + ' ' + where + ' punktet.';
     if (!clipLineToBoard(a, b)) text += ' Linjen går uden for brættet.';
-    if (diff <= 0.5) text += ' Tæt på.';
     return text;
   }
 
@@ -1965,7 +2014,7 @@
         }, motionMs(CELEBRATE_MS));
       } else {
         classNoteShot(false);
-        state.result = missText(fn, a, b, x, y) + ' Prøv igen på samme punkt.';
+        state.result = missText(a, b, x, y) + ' Prøv igen på samme punkt.';
         state.resultKind = 'bad';
         state.banner = 'Prøv igen på (' + x + ', ' + y + ').';
         state.bannerKind = 'info';
@@ -2001,7 +2050,7 @@
       return;
     }
 
-    state.result = missText(fn, a, b, x, y);
+    state.result = missText(a, b, x, y);
     state.resultKind = 'bad';
     renderUI();
     draw();
@@ -2019,6 +2068,12 @@
       renderUI();
       return;
     }
+    var playLim = roomPlayLimits();
+    if (playLim && (!coefAllowed(a, playLim) || !coefAllowed(b, playLim))) {
+      state.formError = playLim.error;
+      renderUI();
+      return;
+    }
     var target = currentTarget();
     if (!target) {
       state.formError = 'Vælg hvilken modstanders punkt du skyder efter.';
@@ -2026,9 +2081,13 @@
       return;
     }
     state.locked = true;
-    state.result = 'Skyder…';
-    state.resultKind = 'info';
+    var earlyHit = isHit(target.x, target.y, a, b);
+    state.result = earlyHit
+      ? ('Ramt! ' + formatFunction(a, b) + ' rammer (' + target.x + ', ' + target.y + ').')
+      : (missText(a, b, target.x, target.y) + (state.mode === 'solo' ? ' Prøv igen på samme punkt.' : ''));
+    state.resultKind = earlyHit ? 'good' : 'bad';
     renderUI();
+    draw();
     var token = ++shotToken;
     var snap = { a: a, b: b, x: target.x, y: target.y, owner: target.owner };
     window.setTimeout(function () {
@@ -2582,6 +2641,10 @@ function qrMatrix(text, maskForce) {
   var teacherQr = document.getElementById('teacher-qr');
   var teacherModeLabel = document.getElementById('teacher-mode-label');
   var teacherModeHint = document.getElementById('teacher-mode-hint');
+  var teacherDiffLabel = document.getElementById('teacher-diff-label');
+  var teacherDiffHint = document.getElementById('teacher-diff-hint');
+  var diffPositiveBtn = document.getElementById('diff-positive');
+  var diffQuartersBtn = document.getElementById('diff-quarters');
   var modeAleneBtn = document.getElementById('mode-alene');
   var modeGrupperBtn = document.getElementById('mode-grupper');
   var teacherStartBtn = document.getElementById('teacher-start');
@@ -2695,6 +2758,7 @@ function qrMatrix(text, maskForce) {
       teacherUid: d.teacherUid || '',
       mode: d.mode === 'grupper' ? 'grupper' : 'alene',
       gamesOpen: d.gamesOpen !== false,
+      difficulty: d.difficulty === 'quarters' ? 'quarters' : 'positive',
       cmd: { id: classNum(cmd.id), type: type, group: group }
     };
   }
@@ -2766,6 +2830,7 @@ function qrMatrix(text, maskForce) {
     return classFs.updateDoc(classFs.doc(classDb, FPS_COLLECTION, room.code), {
       mode: room.mode === 'grupper' ? 'grupper' : 'alene',
       gamesOpen: !!room.gamesOpen,
+      difficulty: room.difficulty === 'quarters' ? 'quarters' : 'positive',
       cmd: classCmdPayload(room.cmd)
     }).catch(function (err) { classNetError(classErrText(err)); });
   }
@@ -2947,7 +3012,7 @@ function qrMatrix(text, maskForce) {
     }
     var stu = classReadStudent(sess.code, sess.id);
     lobbyHi.textContent = 'Hej, ' + sess.name;
-    lobbyRoom.textContent = 'Rum ' + room.code + ' · ' + (room.mode === 'grupper' ? 'Grupper' : 'Hver for sig');
+    lobbyRoom.textContent = 'Rum ' + room.code + ' · ' + (room.mode === 'grupper' ? 'Grupper' : 'Hver for sig') + ' · ' + (room.difficulty === 'quarters' ? 'Også brøker' : 'Kun positive tal');
     var live;
     if (room.mode === 'grupper') {
       live = (stu && stu.group)
@@ -3081,6 +3146,14 @@ function qrMatrix(text, maskForce) {
     classTeacherSnap = '';
     classRenderTeacher(true);
   }
+  function classSetDifficulty(difficulty) {
+    var room = classOwnRoom();
+    if (!room) return;
+    room.difficulty = difficulty === 'quarters' ? 'quarters' : 'positive';
+    classWriteRoom(room);
+    classTeacherSnap = '';
+    classRenderTeacher(true);
+  }
   function classToggleGames() {
     var room = classOwnRoom();
     if (!room) return;
@@ -3095,7 +3168,7 @@ function qrMatrix(text, maskForce) {
     var room = classReadRoom(sess.code);
     if (!room || room.teacherUid !== classUid) return;
     var students = classListStudents(room.code);
-    var snap = JSON.stringify({ mode: room.mode, gamesOpen: room.gamesOpen, cmd: room.cmd, students: students });
+    var snap = JSON.stringify({ mode: room.mode, gamesOpen: room.gamesOpen, difficulty: room.difficulty, cmd: room.cmd, students: students });
     if (!force && snap === classTeacherSnap) return;
     classTeacherSnap = snap;
     teacherTitle.textContent = 'Rum ' + room.code;
@@ -3114,6 +3187,13 @@ function qrMatrix(text, maskForce) {
       : 'Skift til grupper, når runden er slut.';
     modeAleneBtn.setAttribute('aria-pressed', grupper ? 'false' : 'true');
     modeGrupperBtn.setAttribute('aria-pressed', grupper ? 'true' : 'false');
+    var quarters = room.difficulty === 'quarters';
+    teacherDiffLabel.textContent = quarters ? 'Også brøker' : 'Kun positive tal';
+    teacherDiffHint.textContent = quarters
+      ? 'a og b fra −10 til 10, i spring på 0,25, også negative.'
+      : 'a og b fra 0 til 10, i spring på 0,25. Punkter i 1. kvadrant.';
+    diffPositiveBtn.setAttribute('aria-pressed', quarters ? 'false' : 'true');
+    diffQuartersBtn.setAttribute('aria-pressed', quarters ? 'true' : 'false');
     teacherGamesBtn.textContent = room.gamesOpen ? 'Luk for nye spil' : 'Åbn for nye spil';
     teacherGamesLabel.textContent = room.gamesOpen ? 'Nye spil er åbne' : 'Nye spil er lukket';
     teacherPlayBtn.hidden = grupper;
@@ -3229,6 +3309,7 @@ function qrMatrix(text, maskForce) {
       teacherUid: classUid,
       mode: 'alene',
       gamesOpen: true,
+      difficulty: 'positive',
       cmd: { id: 0, type: 'none', group: null },
       createdAt: classFs.serverTimestamp()
     });
@@ -3442,6 +3523,8 @@ function qrMatrix(text, maskForce) {
   joinBackBtn.addEventListener('click', classShowStart);
   modeAleneBtn.addEventListener('click', function () { classSetMode('alene'); });
   modeGrupperBtn.addEventListener('click', function () { classSetMode('grupper'); });
+  diffPositiveBtn.addEventListener('click', function () { classSetDifficulty('positive'); });
+  diffQuartersBtn.addEventListener('click', function () { classSetDifficulty('quarters'); });
   teacherStartBtn.addEventListener('click', function () { classCmd('start', null); });
   teacherMenuBtn.addEventListener('click', function () { classCmd('menu', null); });
   teacherGamesBtn.addEventListener('click', classToggleGames);
