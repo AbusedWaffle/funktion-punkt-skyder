@@ -768,7 +768,7 @@
         </table>
       </div>
       <p class="fine" id="teacher-empty">Ingen elever endnu. De åbner linket eller skriver koden.</p>
-      <p class="learn-entry"><button type="button" class="text-btn" id="teacher-front">Til forsiden</button></p>
+      <p class="learn-entry"><button type="button" class="text-btn" id="teacher-front">Luk rummet</button></p>
     </div>
   </section>
 
@@ -2563,6 +2563,8 @@ function qrMatrix(text, maskForce) {
   var classUid = '';
   var classAuthReady = null;
   var classUnsubs = [];
+  var classHadStudents = false;
+  var classPurging = false;
   var classCache = { code: '', room: null, students: [], roomSeen: false, playersSeen: false };
   var classQrFor = '';
   var classTeacherSnap = '';
@@ -2738,6 +2740,7 @@ function qrMatrix(text, maskForce) {
         classCache.students = out;
         var firstP = !classCache.playersSeen;
         classCache.playersSeen = true;
+        classNotePlayers();
         if (firstP) trySettle();
         else classOnRemote();
       }, function (err) {
@@ -3266,13 +3269,19 @@ function qrMatrix(text, maskForce) {
     classShowLobby();
     return '';
   }
-  function classLeave() {
-    var sess = classSession();
-    if (sess && sess.role === 'student' && classFs && classDb) {
-      var gone = sess;
-      classFs.deleteDoc(classFs.doc(classDb, FPS_COLLECTION, gone.code, 'players', gone.id)).catch(function () {});
+  function classRealStudents() {
+    var out = [];
+    for (var i = 0; i < classCache.students.length; i++) {
+      if (classCache.students[i].id !== 'teacher') out.push(classCache.students[i]);
     }
+    return out;
+  }
+  function classNotePlayers() {
+    if (classRealStudents().length) classHadStudents = true;
+  }
+  function classForgetLocal() {
     classStopWatch();
+    classHadStudents = false;
     classCache = { code: '', room: null, students: [], roomSeen: false, playersSeen: false };
     classSaveSession(null);
     state.classroom = false;
@@ -3280,10 +3289,43 @@ function qrMatrix(text, maskForce) {
     classSetQuery('');
     classShowStart();
   }
+  function classPurge(code) {
+    if (!code || !classFs || !classDb || classPurging) return;
+    classPurging = true;
+    var list = classCache.code === code ? classCache.students.slice() : [];
+    classForgetLocal();
+    var jobs = [];
+    for (var i = 0; i < list.length; i++) {
+      jobs.push(classFs.deleteDoc(classFs.doc(classDb, FPS_COLLECTION, code, 'players', list[i].id)).catch(function () {}));
+    }
+    Promise.all(jobs).then(function () {
+      return classFs.deleteDoc(classFs.doc(classDb, FPS_COLLECTION, code)).catch(function () {});
+    }).then(function () { classPurging = false; }, function () { classPurging = false; });
+  }
+  function classMaybeEmpty() {
+    var sess = classSession();
+    if (!sess || sess.role !== 'teacher' || classPurging) return;
+    if (!classCache.playersSeen || !classCache.room) return;
+    if (classRealStudents().length) return;
+    if (!classHadStudents) return;
+    classPurge(sess.code);
+  }
+  function classLeave() {
+    var sess = classSession();
+    if (sess && sess.role === 'teacher') {
+      classPurge(sess.code);
+      return;
+    }
+    if (sess && sess.role === 'student' && classFs && classDb) {
+      classFs.deleteDoc(classFs.doc(classDb, FPS_COLLECTION, sess.code, 'players', sess.id)).catch(function () {});
+    }
+    classForgetLocal();
+  }
   function classTick() {
     var sess = classSession();
     if (!sess) return;
     if (sess.role === 'teacher') {
+      classMaybeEmpty();
       if (!teacherScreen.hidden) classRenderTeacher(false);
       return;
     }
@@ -3409,7 +3451,7 @@ function qrMatrix(text, maskForce) {
     openLearn();
   });
   teacherPlayBtn.addEventListener('click', function () { startTeacherGame(null); });
-  teacherFrontBtn.addEventListener('click', classShowStart);
+  teacherFrontBtn.addEventListener('click', classLeave);
   teacherCopy.addEventListener('click', function () {
     var url = teacherLink.href || teacherLink.textContent;
     function done(ok) { teacherCopy.textContent = ok ? 'Kopieret' : 'Kopiér link'; }
