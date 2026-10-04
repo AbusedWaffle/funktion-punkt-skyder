@@ -8,7 +8,7 @@ Et lille spil til at øve lineære funktioner, f(x) = ax + b, på et koordinatsy
 1. Åbn linket på din telefon.
 2. Vælg **Én spiller**, hvis computeren skal lægge punkterne, eller **Flere spillere**, hvis I skal lægge punkter for hinanden.
 3. Tryk på diagrammet, når det er din tur, skriv hældning og skæring, og tryk **Skyd**. Du får straks at vide, om skuddet ramte. Rammer du forbi, står der hvor mange enheder linjen er over eller under punktet. Spillet siger ikke en rigtig a og b.
-4. På forsiden ligger **Sådan virker linjen**, hvis du vil læse en kort forklaring og prøve linjer med felter eller skydere.
+4. På forsiden ligger **Hvordan fungerer en lineær funktion?**, hvis du vil læse en kort forklaring og prøve linjer med felter eller skydere.
 
 Tip: Tryk på del-knappen i browseren og vælg **Føj til hjemmeskærm**, så ligger spillet som en app på telefonen.
 

@@ -540,8 +540,8 @@
     overflow: auto;
     padding: calc(8px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left));
   }
-  .learn-top { display: flex; align-items: center; gap: 10px; flex: none; }
-  .learn-top h2 { margin: 0; font-size: 1.15rem; letter-spacing: -0.02em; }
+  .learn-top { display: flex; align-items: center; gap: 10px; flex: none; flex-wrap: wrap; }
+  .learn-top h2 { margin: 0; font-size: 1.05rem; letter-spacing: -0.02em; line-height: 1.25; min-width: 0; }
   .learn-copy { flex: none; font-size: 0.95rem; }
   .learn-copy p { margin: 0 0 6px; }
   .learn-stage {
@@ -571,6 +571,21 @@
     flex: 1 1 220px;
   }
   .room-card.mode { background: #fff8f4; border-color: #e7c2b4; }
+  .room-card.wide { flex: 1 1 100%; }
+  .group-names { display: grid; gap: 8px; }
+  .group-names input[type="text"] { width: 100%; }
+  #teacher-group-count { flex-wrap: wrap; }
+  #teacher-group-totals { display: grid; gap: 6px; }
+  #teacher-winner {
+    margin: 0;
+    padding: 12px 14px;
+    background: var(--paper);
+    border: 1px solid var(--stroke);
+    border-radius: 14px;
+    font-weight: 750;
+  }
+  #play-meta { font-weight: 750; }
+  #teacher-learn { white-space: normal; line-height: 1.25; height: auto; }
   .room-actions { display: flex; flex-wrap: wrap; gap: 8px; }
   .room-actions .btn { min-height: 40px; padding: 0.45rem 0.7rem; }
   .room-actions .btn[aria-pressed="true"] {
@@ -646,7 +661,7 @@
       </button>
     </div>
 
-    <p class="learn-entry"><button type="button" class="learn-link" id="open-learn">Sådan virker linjen</button></p>
+    <p class="learn-entry"><button type="button" class="learn-link" id="open-learn">Hvordan fungerer en lineær funktion?</button></p>
     <p class="learn-entry" id="back-room-wrap" hidden><button type="button" class="learn-link" id="back-room">Tilbage til lærermenuen</button></p>
 
     <form id="solo-form" class="setup" hidden>
@@ -710,7 +725,7 @@
           <li>En runde er ét skud fra hver spiller. Når nogen når 10, skyder de andre runden færdig. Bagefter vinder den, der alene har flest point, hvis det er mindst 10. Står flere lige øverst, spilles en runde mere.</li>
         </ul>
         <p>Punkter på y-aksen (x = 0) bruges ikke, fordi enhver linje med den rigtige b ville ramme dem.</p>
-        <p><strong>Lærer og elever.</strong> Læreren opretter et rum. Eleverne går med med kode eller link og et navn. I grupper starter spillet, når læreren trykker Start, eller siger at gruppen er klar. Læreren kan lukke for nye spil, sende alle til menuen og selv hoppe ind i spillet. Under spillet er der altid en knap tilbage til lærermenuen. Læreren vælger sværhedsgrad, koordinatsystem og bonuspoint for rummet. Hele tal: punktet ligger på hele koordinater. Decimaltal: punktet ligger på koordinater i spring på 0,25. 1 kvadrant er akser fra 0 til 10. 4 kvadranter lægger akserne gennem midten, med x og y fra −10 til 10, og stadig ingen punkter på y-aksen. I et rum er a og b fra −10 til 10, i spring på 0,25, samme for begge sværhedsgrader. Med bonuspoint giver et ramt skud 2 point, hvis linjen ikke er vandret. En vandret linje giver 1 point. Uden for et rum er brættet 1 kvadrant, og a og b kan være frie tal.</p>
+        <p><strong>Lærer og elever.</strong> Læreren opretter et rum. Eleverne går med med kode eller link og et navn. Læreren vælger Hver for sig eller Grupper. I grupper navngiver læreren grupperne, og hver elev vælger en af dem. Eleverne spiller stadig alene mod computeren. Pointene lægges sammen i gruppen. Læreren kan sætte en tidsgrænse i hele minutter. Når tiden løber ud, stopper spillet. Uden grupper vinder eleven med flest point. I grupper vinder gruppen med flest point tilsammen. Står flere lige, er det uafgjort. Uden tidsgrænse gælder først til 10. Læreren kan lukke for nye spil, sende alle til menuen og selv hoppe ind i spillet. Under spillet er der altid en knap tilbage til lærermenuen. Læreren vælger sværhedsgrad, koordinatsystem og bonuspoint for rummet. Hele tal: punktet ligger på hele koordinater. Decimaltal: punktet ligger på koordinater i spring på 0,25. 1 kvadrant er akser fra 0 til 10. 4 kvadranter lægger akserne gennem midten, med x og y fra −10 til 10, og stadig ingen punkter på y-aksen. I et rum er a og b fra −10 til 10, i spring på 0,25, samme for begge sværhedsgrader. Med bonuspoint giver et ramt skud 2 point, hvis linjen ikke er vandret. En vandret linje giver 1 point. Uden for et rum er brættet 1 kvadrant, og a og b kan være frie tal.</p>
       </div>
     </details>
   </section>
@@ -739,9 +754,10 @@
       <h2 id="lobby-hi">Hej</h2>
       <p class="lede" id="lobby-room"></p>
       <p id="lobby-status"></p>
+      <p id="lobby-timer" class="fine" hidden></p>
       <div id="lobby-groups" class="count-picker" role="group" aria-label="Vælg gruppe" hidden></div>
       <button type="button" class="btn" id="lobby-start" hidden>Start spil</button>
-      <p class="learn-entry"><button type="button" class="learn-link" id="lobby-learn">Sådan virker linjen</button></p>
+      <p class="learn-entry"><button type="button" class="learn-link" id="lobby-learn">Hvordan fungerer en lineær funktion?</button></p>
       <button type="button" class="btn secondary" id="lobby-leave">Forlad rummet</button>
     </div>
   </section>
@@ -797,6 +813,13 @@
         <div class="room-card">
           <button type="button" class="btn" id="teacher-start">Start spillet</button>
           <div class="fine" id="teacher-ready">Ingen elever endnu</div>
+          <label class="field">
+            <span class="field-label">Minutter</span>
+            <input id="teacher-minutes" type="text" inputmode="numeric" maxlength="2" autocomplete="off" placeholder="f.eks. 5" aria-label="Antal minutter, fra 1 til 60">
+          </label>
+          <button type="button" class="btn secondary" id="teacher-start-timed">Start med tid</button>
+          <p id="teacher-timer-error" class="error" role="alert" hidden></p>
+          <p id="teacher-timer-status" class="fine"></p>
           <div class="room-actions" id="teacher-group-actions" hidden></div>
         </div>
         <div class="room-card">
@@ -805,7 +828,7 @@
           <div class="fine" id="teacher-games-label">Nye spil er åbne</div>
         </div>
         <div class="room-card">
-          <button type="button" class="btn secondary" id="teacher-learn">Sådan virker linjen</button>
+          <button type="button" class="btn secondary" id="teacher-learn">Hvordan fungerer en lineær funktion?</button>
           <div class="fine">Læreren kan selv åbne forklaringen og skyderne</div>
         </div>
         <div class="room-card">
@@ -814,6 +837,17 @@
           <div class="fine">Hop selv ind. Knappen Til lærermenuen bliver stående, også når spillet er slut.</div>
         </div>
       </div>
+      <div class="room-card wide" id="teacher-groups-card" hidden>
+        <div class="fine">Grupper</div>
+        <strong>Navngiv grupperne</strong>
+        <p class="fine">Vælg hvor mange, skriv et navn til hver, og gem. Et tomt navn kan ikke gemmes. Højst 8.</p>
+        <div id="teacher-group-count" class="count-picker" role="group" aria-label="Antal grupper"></div>
+        <div id="teacher-group-editor" class="group-names"></div>
+        <p id="teacher-group-error" class="error" role="alert" hidden></p>
+        <button type="button" class="btn" id="teacher-save-groups">Gem grupper</button>
+      </div>
+      <div id="teacher-group-totals" class="room-card wide" hidden></div>
+      <p id="teacher-winner" hidden></p>
       <div class="table-wrap">
         <table>
           <thead>
@@ -838,7 +872,7 @@
   <section id="screen-learn" hidden>
     <div class="learn-top">
       <button type="button" class="text-btn" id="learn-back">Til forsiden</button>
-      <h2>Sådan virker linjen</h2>
+      <h2>Hvordan fungerer en lineær funktion?</h2>
     </div>
     <div class="learn-copy">
       <p>En lineær funktion er en ret linje, <strong>f(x) = ax + b</strong>.</p>
@@ -884,6 +918,7 @@
         <canvas id="board" width="640" height="640" aria-label="Koordinatsystem fra 0 til 10"></canvas>
         <div class="board-overlay">
           <p id="readout" class="readout" hidden></p>
+          <p id="play-meta" class="readout" hidden></p>
           <p id="banner" class="status info"></p>
           <p id="result" class="result info" hidden></p>
           <div id="target-block" class="targets" hidden></div>
@@ -1169,6 +1204,7 @@
     hoverText: '',
     locked: false,
     winner: null,
+    timerWin: null,
     classroom: false,
     teacherPlaying: false
   };
@@ -1344,7 +1380,14 @@
 
   function roundText() {
     if (!state.players.length) return '';
-    if (state.mode === 'solo') return 'Først til 10 point';
+    if (state.mode === 'solo') {
+      var timedRoom = (state.classroom || state.teacherPlaying) ? currentRoom() : null;
+      if (timedRoom && classIsTimedRoom(timedRoom)) {
+        if (classTimerExpired(timedRoom) || (state.phase === 'win' && state.timerWin)) return 'Tiden er gået';
+        return 'Tid tilbage: ' + classFormatRemain(classEndsAt(timedRoom) - Date.now());
+      }
+      return 'Først til 10 point';
+    }
     if (state.phase === 'setup') return 'Opsætning · punkt ' + (state.setupIndex + 1) + ' af ' + state.players.length;
     if (state.phase === 'replace') return 'Læg et nyt punkt';
     if (state.phase === 'win') return 'Spillet er slut';
@@ -1839,11 +1882,14 @@
       seenScores.set(i, p.score);
       var num = document.createElement('span');
       num.textContent = String(p.score);
-      var of = document.createElement('span');
-      of.className = 'of';
-      of.textContent = '/10';
       scoreEl.appendChild(num);
-      scoreEl.appendChild(of);
+      var timedScore = (state.classroom || state.teacherPlaying) && classIsTimedRoom(currentRoom());
+      if (!timedScore) {
+        var of = document.createElement('span');
+        of.className = 'of';
+        of.textContent = '/10';
+        scoreEl.appendChild(of);
+      }
       row.appendChild(sw);
       row.appendChild(who);
       row.appendChild(scoreEl);
@@ -1904,6 +1950,18 @@
   }
 
   function renderWin() {
+    if (state.timerWin) {
+      winTitle.textContent = state.timerWin.title;
+      winText.textContent = state.timerWin.text;
+      winScores.replaceChildren();
+      var rows = state.timerWin.rows || [];
+      for (var t = 0; t < rows.length; t++) {
+        var item = document.createElement('li');
+        item.textContent = rows[t].name + ': ' + rows[t].score;
+        winScores.appendChild(item);
+      }
+      return;
+    }
     var w = state.players[state.winner];
     winTitle.textContent = 'Tillykke, ' + w.name + '!';
     if (state.mode === 'solo') winText.textContent = 'Du nåede 10 point.';
@@ -1954,6 +2012,7 @@
     updatePreview();
     winCard.hidden = state.phase !== 'win';
     if (state.phase === 'win') renderWin();
+    classPaintPlayMeta();
     forfraBtn.hidden = state.phase === 'win';
     // Til lærermenuen bliver stående under hele spillet, også når det er slut.
     toTeacherBtn.hidden = !state.teacherPlaying;
@@ -2030,6 +2089,7 @@
     state.hoverText = '';
     state.locked = false;
     state.winner = null;
+    state.timerWin = null;
     state.soloPoint = null;
     coefA.value = '';
     coefB.value = '';
@@ -2153,6 +2213,7 @@
   function endGame(index) {
     state.phase = 'win';
     state.winner = index;
+    state.timerWin = null;
     state.locked = true;
     state.hover = null;
     state.hoverText = '';
@@ -2220,7 +2281,8 @@
         state.result = soloHit.text;
         if (Math.abs(y - (a * x + b)) > 1e-4) state.result += ' Inden for margen på 0,02.';
         state.resultKind = 'good';
-        state.banner = state.players[0].score >= 10 ? 'Sådan.' : 'Nyt punkt er på vej.';
+        var timedRoom = (state.classroom || state.teacherPlaying) && classIsTimedRoom(currentRoom());
+        state.banner = (!timedRoom && state.players[0].score >= 10) ? 'Sådan.' : 'Nyt punkt er på vej.';
         state.bannerKind = 'good';
         state.locked = true;
         renderUI();
@@ -2228,7 +2290,12 @@
         animateFlash();
         window.setTimeout(function () {
           if (token !== shotToken) return;
-          if (state.players[0].score >= 10) {
+          if ((state.classroom || state.teacherPlaying) && classTimerExpired(currentRoom())) {
+            classMaybeEndTimed();
+            return;
+          }
+          var stillTimed = (state.classroom || state.teacherPlaying) && classIsTimedRoom(currentRoom());
+          if (!stillTimed && state.players[0].score >= 10) {
             endGame(0);
             return;
           }
@@ -2292,6 +2359,10 @@
 
   function onSubmit(e) {
     e.preventDefault();
+    if ((state.classroom || state.teacherPlaying) && classTimerExpired(currentRoom())) {
+      classMaybeEndTimed();
+      return;
+    }
     if (state.locked || state.phase !== 'aim') return;
     state.formError = '';
     var a = parseNumber(coefA.value);
@@ -2407,6 +2478,10 @@
   canvas.addEventListener('pointerdown', function (e) {
     if (e.button != null && e.button !== 0) return;
     if (state.phase === 'aim') {
+      if ((state.classroom || state.teacherPlaying) && classTimerExpired(currentRoom())) {
+        classMaybeEndTimed();
+        return;
+      }
       e.preventDefault();
       state.sheetOpen = !state.sheetOpen;
       renderUI();
@@ -2493,6 +2568,11 @@
   });
   againBtn.addEventListener('click', function () {
     if (state.teacherPlaying) {
+      var roomNow = currentRoom();
+      if (roomNow && classTimerExpired(roomNow)) {
+        classBackToTeacher();
+        return;
+      }
       var sess = classSession();
       var stu = sess ? classReadStudent(sess.code, 'teacher') : null;
       startTeacherGame(stu && stu.group);
@@ -2501,6 +2581,10 @@
     if (state.classroom && classIsStudent()) {
       var sess2 = classSession();
       var room = sess2 ? classReadRoom(sess2.code) : null;
+      if (room && classTimerExpired(room)) {
+        classExitToLobby('Tiden er gået.');
+        return;
+      }
       if (room && room.mode !== 'grupper' && room.gamesOpen) {
         startClassroomGame();
         return;
@@ -2877,6 +2961,10 @@ function qrMatrix(text, maskForce) {
   var classTeacherSnap = '';
   var classLobbySnap = '';
   var classLobbyNote = '';
+  var classGroupDraft = [];
+  var classGroupDraftKey = '';
+  var classGroupDirty = false;
+  var classTimerAnnounced = 0;
   var topHeader = document.querySelector('header.top');
   var teacherScreen = document.getElementById('screen-teacher');
   var joinScreen = document.getElementById('screen-join');
@@ -2915,6 +3003,19 @@ function qrMatrix(text, maskForce) {
   var teacherBody = document.getElementById('teacher-body');
   var teacherEmpty = document.getElementById('teacher-empty');
   var teacherFrontBtn = document.getElementById('teacher-front');
+  var teacherMinutes = document.getElementById('teacher-minutes');
+  var teacherStartTimed = document.getElementById('teacher-start-timed');
+  var teacherTimerError = document.getElementById('teacher-timer-error');
+  var teacherTimerStatus = document.getElementById('teacher-timer-status');
+  var teacherGroupsCard = document.getElementById('teacher-groups-card');
+  var teacherGroupCount = document.getElementById('teacher-group-count');
+  var teacherGroupEditor = document.getElementById('teacher-group-editor');
+  var teacherGroupError = document.getElementById('teacher-group-error');
+  var teacherSaveGroups = document.getElementById('teacher-save-groups');
+  var teacherGroupTotals = document.getElementById('teacher-group-totals');
+  var teacherWinner = document.getElementById('teacher-winner');
+  var lobbyTimer = document.getElementById('lobby-timer');
+  var playMeta = document.getElementById('play-meta');
   var joinForm = document.getElementById('join-form');
   var joinCodeInput = document.getElementById('join-code');
   var joinNameInput = document.getElementById('join-name');
@@ -2934,6 +3035,220 @@ function qrMatrix(text, maskForce) {
   var toTeacherBtn = document.getElementById('to-teacher');
   var winToTeacherBtn = document.getElementById('win-to-teacher');
 
+
+  function classCaptureGroupDraft() {
+    if (!teacherGroupEditor) return;
+    var inputs = teacherGroupEditor.querySelectorAll('input[data-gid]');
+    if (!inputs.length) return;
+    var list = [];
+    for (var i = 0; i < inputs.length; i++) {
+      list.push({ id: inputs[i].getAttribute('data-gid'), name: inputs[i].value });
+    }
+    classGroupDraft = list;
+  }
+  function classPaintGroupEditor() {
+    if (!teacherGroupCount || !teacherGroupEditor) return;
+    var count = classGroupDraft.length;
+    teacherGroupCount.replaceChildren();
+    for (var n = 1; n <= 8; n++) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = String(n);
+      b.setAttribute('aria-pressed', n === count ? 'true' : 'false');
+      (function (num) {
+        b.addEventListener('click', function () { classSetGroupCount(num); });
+      })(n);
+      teacherGroupCount.appendChild(b);
+    }
+    teacherGroupEditor.replaceChildren();
+    for (var i = 0; i < classGroupDraft.length; i++) {
+      var field = document.createElement('label');
+      field.className = 'field';
+      var lab = document.createElement('span');
+      lab.className = 'field-label';
+      lab.textContent = 'Gruppe ' + (i + 1);
+      var input = document.createElement('input');
+      input.type = 'text';
+      input.maxLength = 24;
+      input.autocomplete = 'off';
+      input.placeholder = 'f.eks. Rød';
+      input.value = classGroupDraft[i].name;
+      input.setAttribute('data-gid', classGroupDraft[i].id);
+      input.setAttribute('aria-label', 'Navn på gruppe ' + (i + 1));
+      input.addEventListener('input', function () { classGroupDirty = true; });
+      field.appendChild(lab);
+      field.appendChild(input);
+      teacherGroupEditor.appendChild(field);
+    }
+  }
+  function classSetGroupCount(n) {
+    if (n < 1) n = 1;
+    if (n > 8) n = 8;
+    classCaptureGroupDraft();
+    classGroupDirty = true;
+    while (classGroupDraft.length < n) classGroupDraft.push({ id: classNewGroupId(), name: '' });
+    if (classGroupDraft.length > n) classGroupDraft = classGroupDraft.slice(0, n);
+    classPaintGroupEditor();
+  }
+  function classSyncGroupEditor(room) {
+    if (!teacherGroupsCard) return;
+    var grupper = room.mode === 'grupper';
+    teacherGroupsCard.hidden = !grupper;
+    if (!grupper) return;
+    var key = JSON.stringify(room.groups || []);
+    if (classGroupDirty) return;
+    if (key === classGroupDraftKey && teacherGroupEditor.childElementCount) return;
+    classGroupDraftKey = key;
+    if (room.groups && room.groups.length) {
+      classGroupDraft = room.groups.map(function (g) { return { id: g.id, name: g.name }; });
+    } else {
+      classGroupDraft = [
+        { id: classNewGroupId(), name: '' },
+        { id: classNewGroupId(), name: '' }
+      ];
+    }
+    classPaintGroupEditor();
+  }
+  function classSaveGroups() {
+    classCaptureGroupDraft();
+    var list = [];
+    for (var i = 0; i < classGroupDraft.length; i++) {
+      var name = String(classGroupDraft[i].name || '').replace(/\s+/g, ' ').trim();
+      if (!name) {
+        teacherGroupError.hidden = false;
+        teacherGroupError.textContent = 'Skriv et navn til hver gruppe. Tomme navne kan ikke gemmes.';
+        return;
+      }
+      if (name.length > 24 || !classValidGroupId(classGroupDraft[i].id)) {
+        teacherGroupError.hidden = false;
+        teacherGroupError.textContent = 'Navnet må højst være 24 tegn.';
+        return;
+      }
+      list.push({ id: classGroupDraft[i].id, name: name });
+    }
+    if (!list.length || list.length > 8) {
+      teacherGroupError.hidden = false;
+      teacherGroupError.textContent = 'Højst 8 grupper.';
+      return;
+    }
+    var room = classOwnRoom();
+    if (!room) return;
+    teacherGroupError.hidden = true;
+    room.groups = list;
+    classGroupDirty = false;
+    classGroupDraftKey = JSON.stringify(list);
+    classGroupDraft = list.map(function (g) { return { id: g.id, name: g.name }; });
+    classWriteRoom(room);
+    classTeacherSnap = '';
+    classRenderTeacher(true);
+  }
+  function classStartPlay(minutes) {
+    var room = classOwnRoom();
+    if (!room) return;
+    teacherTimerError.hidden = true;
+    if (room.mode === 'grupper' && !(room.groups && room.groups.length)) {
+      teacherTimerError.hidden = false;
+      teacherTimerError.textContent = 'Gem mindst én gruppe, før du starter.';
+      return;
+    }
+    if (minutes) room.endsAt = Date.now() + minutes * 60000;
+    else room.endsAt = null;
+    room.cmd = { id: ((room.cmd && room.cmd.id) || 0) + 1, type: 'start', group: null };
+    classTimerAnnounced = 0;
+    classWriteRoom(room);
+    classTeacherSnap = '';
+    classRenderTeacher(true);
+  }
+  function classPaintGroupTotals(room, students) {
+    if (!teacherGroupTotals) return;
+    if (!room || room.mode !== 'grupper') {
+      teacherGroupTotals.hidden = true;
+      teacherGroupTotals.replaceChildren();
+      return;
+    }
+    teacherGroupTotals.hidden = false;
+    teacherGroupTotals.replaceChildren();
+    var title = document.createElement('div');
+    title.className = 'fine';
+    title.textContent = 'Gruppernes point';
+    teacherGroupTotals.appendChild(title);
+    var groups = room.groups || [];
+    if (!groups.length) {
+      var empty = document.createElement('p');
+      empty.className = 'fine';
+      empty.textContent = 'Ingen grupper gemt endnu.';
+      teacherGroupTotals.appendChild(empty);
+      return;
+    }
+    for (var i = 0; i < groups.length; i++) {
+      var sum = 0;
+      var members = 0;
+      for (var s = 0; s < students.length; s++) {
+        if (students[s].group !== groups[i].id || !classCountsInRoom(students[s])) continue;
+        sum += classNum(students[s].points);
+        members++;
+      }
+      var line = document.createElement('strong');
+      line.textContent = groups[i].name + ': ' + sum + ' point' + (members ? ' (' + members + (members === 1 ? ' elev)' : ' elever)') : '');
+      teacherGroupTotals.appendChild(line);
+    }
+  }
+  function classPaintTeacherResult(room, students) {
+    if (!teacherWinner || !teacherTimerStatus) return;
+    if (classTimerExpired(room)) {
+      var win = classTimerWinFromRows(classRankTimer(room, students), room.mode === 'grupper');
+      teacherWinner.hidden = false;
+      teacherWinner.textContent = 'Tiden er gået. ' + win.text;
+      teacherTimerStatus.textContent = 'Tiden er gået.';
+      return;
+    }
+    teacherWinner.hidden = true;
+    teacherWinner.textContent = '';
+    if (classIsTimedRoom(room)) {
+      teacherTimerStatus.textContent = 'Tid tilbage: ' + classFormatRemain(classEndsAt(room) - Date.now());
+    } else {
+      teacherTimerStatus.textContent = 'Uden tidsgrænse. Først til 10 point.';
+    }
+  }
+  function classPaintLobbyClock(room, sess) {
+    if (!lobbyTimer) return;
+    if (!sess || sess.role !== 'student' || lobbyScreen.hidden || !room || !classIsTimedRoom(room)) {
+      lobbyTimer.hidden = true;
+      return;
+    }
+    lobbyTimer.hidden = false;
+    if (classTimerExpired(room)) {
+      var win = classTimerWinFromRows(classRankTimer(room, classStudentsForScore(room)), room.mode === 'grupper');
+      lobbyTimer.textContent = 'Tiden er gået. ' + win.text;
+    } else {
+      lobbyTimer.textContent = 'Tid tilbage: ' + classFormatRemain(classEndsAt(room) - Date.now());
+    }
+  }
+  function classPaintTeacherClock(room, sess) {
+    if (!teacherTimerStatus || !sess || sess.role !== 'teacher' || teacherScreen.hidden || !room) return;
+    if (!classIsTimedRoom(room) || classTimerExpired(room)) return;
+    teacherTimerStatus.textContent = 'Tid tilbage: ' + classFormatRemain(classEndsAt(room) - Date.now());
+  }
+  function classOnClock() {
+    var sess = classSession();
+    if (!sess) return;
+    var room = classReadRoom(sess.code);
+    classPaintPlayMeta();
+    classPaintLobbyClock(room, sess);
+    classPaintTeacherClock(room, sess);
+    if (!room || !classTimerExpired(room)) return;
+    classMaybeEndTimed();
+    var end = classEndsAt(room);
+    if (classTimerAnnounced === end) return;
+    classTimerAnnounced = end;
+    if (sess.role === 'teacher') {
+      classTeacherSnap = '';
+      if (!teacherScreen.hidden) classRenderTeacher(true);
+    } else if (!lobbyScreen.hidden) {
+      classLobbySnap = '';
+      classRenderLobby();
+    }
+  }
   function classNetError(msg) {
     if (!classNet) return;
     if (!msg) { classNet.hidden = true; classNet.textContent = ''; return; }
@@ -2999,6 +3314,219 @@ function qrMatrix(text, maskForce) {
     for (var j = 0; j < n; j++) s += alphabet[bytes[j] % alphabet.length];
     return s;
   }
+
+  function classValidGroupId(id) {
+    return typeof id === 'string' && /^[A-Za-z0-9]{1,16}$/.test(id);
+  }
+  function classNewGroupId() {
+    return ('g' + classRand(8)).slice(0, 16);
+  }
+  function classParseGroups(raw) {
+    if (!Array.isArray(raw)) return [];
+    var out = [];
+    var seen = {};
+    for (var i = 0; i < raw.length && out.length < 8; i++) {
+      var g = raw[i];
+      if (!g || !classValidGroupId(g.id) || seen[g.id]) continue;
+      var name = String(g.name || '').replace(/\s+/g, ' ').trim();
+      if (!name || name.length > 24) continue;
+      seen[g.id] = true;
+      out.push({ id: g.id, name: name });
+    }
+    return out;
+  }
+  function classParseEndsAt(v) {
+    if (v == null || v === '') return null;
+    if (typeof v === 'object' && v) {
+      if (typeof v.toMillis === 'function') v = v.toMillis();
+      else if (typeof v.seconds === 'number') v = v.seconds * 1000 + Math.floor((v.nanoseconds || 0) / 1e6);
+    }
+    var n = Number(v);
+    if (!isFinite(n) || n <= 0) return null;
+    return Math.floor(n);
+  }
+  function classGroupsPayload(list) {
+    return classParseGroups(list);
+  }
+  function classEndsPayload(v) {
+    var n = classParseEndsAt(v);
+    if (!n || n > 4102444800000) return null;
+    return n;
+  }
+  function classGroupById(room, id) {
+    if (!room || !classValidGroupId(id)) return null;
+    var groups = room.groups || [];
+    for (var i = 0; i < groups.length; i++) {
+      if (groups[i].id === id) return groups[i];
+    }
+    return null;
+  }
+  function classEndsAt(room) {
+    if (!room || room.endsAt == null) return 0;
+    var n = Number(room.endsAt);
+    if (!isFinite(n) || n <= 0) return 0;
+    return n;
+  }
+  function classIsTimedRoom(room) {
+    return classEndsAt(room) > 0;
+  }
+  function classTimerExpired(room) {
+    var end = classEndsAt(room);
+    return end > 0 && Date.now() >= end;
+  }
+  function classFormatRemain(ms) {
+    var s = Math.ceil(Math.max(0, ms) / 1000);
+    var m = Math.floor(s / 60);
+    var r = s % 60;
+    return m + ':' + (r < 10 ? '0' : '') + r;
+  }
+  function classJoinNames(names) {
+    if (!names.length) return '';
+    if (names.length === 1) return names[0];
+    if (names.length === 2) return names[0] + ' og ' + names[1];
+    return names.slice(0, -1).join(', ') + ' og ' + names[names.length - 1];
+  }
+  function classCountsInRoom(stu) {
+    if (!stu) return false;
+    if (stu.id !== 'teacher') return true;
+    return classNum(stu.points) > 0 || stu.where === 'playing' || classNum(stu.tasks) > 0;
+  }
+  function classStudentsForScore(room) {
+    var list = classListStudents(room.code).map(function (s) {
+      return {
+        id: s.id,
+        name: s.name,
+        where: s.where,
+        points: classNum(s.points),
+        tasks: classNum(s.tasks),
+        group: classGroupById(room, s.group) ? s.group : null
+      };
+    });
+    if ((state.classroom || state.teacherPlaying) && state.players[0] && state.mode === 'solo') {
+      var sess = classSession();
+      var id = sess ? (sess.role === 'teacher' ? 'teacher' : sess.id) : '';
+      for (var i = 0; i < list.length; i++) {
+        if (list[i].id === id) list[i].points = Math.max(list[i].points, classNum(state.players[0].score));
+      }
+    }
+    return list;
+  }
+  function classRankTimer(room, students) {
+    var rows = [];
+    if (room.mode === 'grupper') {
+      var groups = room.groups || [];
+      for (var i = 0; i < groups.length; i++) {
+        var sum = 0;
+        for (var s = 0; s < students.length; s++) {
+          if (students[s].group === groups[i].id && classCountsInRoom(students[s])) sum += classNum(students[s].points);
+        }
+        rows.push({ name: groups[i].name, score: sum });
+      }
+    } else {
+      for (var j = 0; j < students.length; j++) {
+        if (!classCountsInRoom(students[j])) continue;
+        rows.push({ name: students[j].name || 'Elev', score: classNum(students[j].points) });
+      }
+    }
+    rows.sort(function (a, b) {
+      return b.score - a.score || String(a.name).localeCompare(String(b.name), 'da');
+    });
+    return rows;
+  }
+  function classTimerWinFromRows(rows, grupper) {
+    if (!rows.length) {
+      return {
+        title: 'Tiden er gået',
+        text: grupper ? 'Ingen grupper.' : 'Ingen elever.',
+        rows: []
+      };
+    }
+    var best = rows[0].score;
+    var top = [];
+    for (var i = 0; i < rows.length; i++) if (rows[i].score === best) top.push(rows[i].name);
+    if (top.length === 1) {
+      return {
+        title: 'Tillykke, ' + top[0] + '!',
+        text: top[0] + ' vinder med ' + best + ' point.',
+        rows: rows
+      };
+    }
+    return {
+      title: 'Uafgjort',
+      text: 'Det er uafgjort mellem ' + classJoinNames(top) + '.',
+      rows: rows
+    };
+  }
+  function classOwnGroupLine() {
+    if (!state.classroom && !state.teacherPlaying) return '';
+    if (state.phase === 'win') return '';
+    var room = currentRoom();
+    if (!room || room.mode !== 'grupper') return '';
+    var sess = classSession();
+    if (!sess) return '';
+    var id = sess.role === 'teacher' ? 'teacher' : sess.id;
+    var stu = classReadStudent(room.code, id);
+    if (!stu) return '';
+    var g = classGroupById(room, stu.group);
+    if (!g) return '';
+    var students = classStudentsForScore(room);
+    var sum = 0;
+    for (var i = 0; i < students.length; i++) {
+      if (students[i].group === g.id && classCountsInRoom(students[i])) sum += classNum(students[i].points);
+    }
+    return 'Gruppen ' + g.name + ': ' + sum + ' point tilsammen';
+  }
+  function classPaintPlayMeta() {
+    if (!playMeta) return;
+    var show = !gameScreen.hidden && (state.classroom || state.teacherPlaying) && state.phase !== 'win';
+    var line = '';
+    if (show) {
+      var bits = [];
+      var room = currentRoom();
+      if (room && classIsTimedRoom(room)) {
+        if (classTimerExpired(room)) bits.push('Tiden er gået');
+        else bits.push('Tid tilbage: ' + classFormatRemain(classEndsAt(room) - Date.now()));
+      }
+      var groupLine = classOwnGroupLine();
+      if (groupLine) bits.push(groupLine);
+      line = bits.join(' · ');
+    }
+    playMeta.hidden = !line;
+    playMeta.textContent = line;
+    if (!gameScreen.hidden && state.mode === 'solo' && (state.classroom || state.teacherPlaying) && classIsTimedRoom(currentRoom()) && roundLabel) {
+      roundLabel.textContent = roundText();
+    }
+  }
+  function classMaybeEndTimed() {
+    if (gameScreen.hidden) return;
+    if (!state.classroom && !state.teacherPlaying) return;
+    if (state.phase === 'win' && state.timerWin) return;
+    var room = currentRoom();
+    if (!room || !classTimerExpired(room)) return;
+    shotToken += 1;
+    state.locked = true;
+    state.sheetOpen = false;
+    state.hover = null;
+    state.hoverText = '';
+    state.flash = null;
+    state.timerWin = classTimerWinFromRows(classRankTimer(room, classStudentsForScore(room)), room.mode === 'grupper');
+    state.phase = 'win';
+    state.winner = null;
+    renderUI();
+    draw();
+  }
+  function classDropStaleGroup() {
+    var sess = classSession();
+    if (!sess || !classFs) return;
+    var room = classReadRoom(sess.code);
+    if (!room || room.mode !== 'grupper') return;
+    var id = sess.role === 'teacher' ? 'teacher' : sess.id;
+    var stu = classReadStudent(sess.code, id);
+    if (!stu || !stu.group) return;
+    if (classGroupById(room, stu.group)) return;
+    stu.group = null;
+    classWriteStudentRawFor(sess.code, stu);
+  }
   function classNormCode(raw) {
     var t = String(raw || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
     if (t.length !== 6) return '';
@@ -3017,6 +3545,8 @@ function qrMatrix(text, maskForce) {
       difficulty: d.difficulty === 'quarters' ? 'quarters' : 'positive',
       board: d.board === 'four' ? 'four' : 'one',
       bonus: d.bonus === true,
+      groups: classParseGroups(d.groups),
+      endsAt: classParseEndsAt(d.endsAt),
       cmd: { id: classNum(cmd.id), type: type, group: group }
     };
   }
@@ -3091,6 +3621,11 @@ function qrMatrix(text, maskForce) {
       difficulty: room.difficulty === 'quarters' ? 'quarters' : 'positive',
       board: room.board === 'four' ? 'four' : 'one',
       bonus: !!room.bonus,
+      groups: classGroupsPayload(room.groups),
+      endsAt: (function () {
+        var n = classEndsPayload(room.endsAt);
+        return n ? classFs.Timestamp.fromMillis(n) : null;
+      })(),
       cmd: classCmdPayload(room.cmd)
     }).catch(function (err) { classNetError(classErrText(err)); });
   }
@@ -3102,7 +3637,7 @@ function qrMatrix(text, maskForce) {
     return null;
   }
   function classPlayerPayload(stu) {
-    var group = (stu.group === '1' || stu.group === '2' || stu.group === '3' || stu.group === '4') ? stu.group : null;
+    var group = classValidGroupId(stu.group) ? stu.group : null;
     var where = (stu.where === 'playing' || stu.where === 'learn') ? stu.where : 'menu';
     var name = cleanName(stu.name, stu.id === 'teacher' ? 'Lærer' : 'Elev');
     return {
@@ -3161,11 +3696,18 @@ function qrMatrix(text, maskForce) {
     var r = Math.round((correct / wrong) * 10) / 10;
     return r.toFixed(1).replace('.', ',');
   }
-  function classWhereInfo(student, mode) {
+  function classWhereInfo(student, room) {
     if (student.where === 'learn') return { text: 'Kigger på linjen', cls: 'tag-learn' };
     if (student.where === 'playing') {
-      if (mode === 'grupper' && student.group) return { text: 'Spiller, gruppe ' + student.group, cls: 'tag-play' };
+      if (room && room.mode === 'grupper') {
+        var named = classGroupById(room, student.group);
+        if (named) return { text: 'Spiller · ' + named.name, cls: 'tag-play' };
+      }
       return { text: 'Spiller', cls: 'tag-play' };
+    }
+    if (room && room.mode === 'grupper') {
+      var waiting = classGroupById(room, student.group);
+      if (waiting) return { text: 'I menuen · ' + waiting.name, cls: 'tag-menu' };
     }
     return { text: 'I menuen', cls: 'tag-menu' };
   }
@@ -3273,20 +3815,28 @@ function qrMatrix(text, maskForce) {
     var stu = classReadStudent(sess.code, sess.id);
     lobbyHi.textContent = 'Hej, ' + sess.name;
     lobbyRoom.textContent = 'Rum ' + room.code + ' · ' + (room.mode === 'grupper' ? 'Grupper' : 'Hver for sig') + ' · ' + (room.difficulty === 'quarters' ? 'Decimaltal' : 'Hele tal') + ' · ' + (room.board === 'four' ? '4 kvadranter' : '1 kvadrant') + (room.bonus ? ' · Bonuspoint' : '');
+    var groups = room.groups || [];
+    var mine = stu ? classGroupById(room, stu.group) : null;
     var live;
     if (room.mode === 'grupper') {
-      live = (stu && stu.group)
-        ? ('Du er i gruppe ' + stu.group + '. I venter på, at læreren starter.')
-        : 'Vælg en gruppe. Spillet starter, når læreren trykker Start, eller siger at gruppen er klar.';
-    } else if (!room.gamesOpen) live = 'Læreren har lukket for nye spil.';
+      if (!groups.length) live = 'Læreren har ikke oprettet grupper endnu.';
+      else if (mine) live = 'Du er i ' + mine.name + '. Du spiller selv, når læreren starter. Dine point tæller med i gruppen.';
+      else live = 'Vælg en gruppe. Du spiller selv, og dine point tæller med i gruppen.';
+    } else if (classTimerExpired(room)) live = 'Tiden er gået.';
+    else if (!room.gamesOpen) live = 'Læreren har lukket for nye spil.';
     else live = 'Du kan starte selv, eller vente på at læreren starter.';
     lobbyStatus.textContent = classLobbyNote ? (classLobbyNote + ' ' + live) : live;
     lobbyGroups.hidden = room.mode !== 'grupper';
-    var buttons = lobbyGroups.querySelectorAll('button');
-    for (var i = 0; i < buttons.length; i++) {
-      buttons[i].setAttribute('aria-pressed', stu && stu.group === buttons[i].dataset.group ? 'true' : 'false');
+    lobbyGroups.replaceChildren();
+    for (var g = 0; g < groups.length; g++) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.dataset.group = groups[g].id;
+      b.textContent = groups[g].name;
+      b.setAttribute('aria-pressed', mine && mine.id === groups[g].id ? 'true' : 'false');
+      lobbyGroups.appendChild(b);
     }
-    lobbyStart.hidden = !(room.mode !== 'grupper' && room.gamesOpen);
+    lobbyStart.hidden = !(room.mode !== 'grupper' && room.gamesOpen && !classTimerExpired(room));
     var snap = JSON.stringify(room) + '|' + JSON.stringify(stu) + '|' + classLobbyNote;
     classLobbySnap = snap;
   }
@@ -3337,6 +3887,7 @@ function qrMatrix(text, maskForce) {
     stu.points = state.players[0] ? state.players[0].score : 0;
     stu.where = 'playing';
     classWriteStudentRawFor(sess.code, stu);
+    classPaintPlayMeta();
   }
   function classCanAutoStart() {
     if (!lobbyScreen.hidden || !learnScreen.hidden || !joinScreen.hidden || !startScreen.hidden) return true;
@@ -3346,6 +3897,8 @@ function qrMatrix(text, maskForce) {
   function startClassroomGame() {
     var sess = classSession();
     if (!sess || sess.role !== 'student') return;
+    var roomGate = classReadRoom(sess.code);
+    if (roomGate && classTimerExpired(roomGate)) return;
     classLobbyNote = '';
     soloNameInput.value = sess.name;
     var stu = classReadStudent(sess.code, sess.id);
@@ -3375,8 +3928,10 @@ function qrMatrix(text, maskForce) {
     };
     stu.name = 'Lærer';
     stu.id = 'teacher';
-    if (room.mode === 'grupper') stu.group = group || stu.group || '1';
-    else stu.group = null;
+    if (room.mode === 'grupper') {
+      if (!classGroupById(room, group)) return;
+      stu.group = group;
+    } else stu.group = null;
     stu.points = 0;
     stu.where = 'playing';
     classWriteStudentRawFor(room.code, stu);
@@ -3393,6 +3948,7 @@ function qrMatrix(text, maskForce) {
   function classCmd(type, group) {
     var room = classOwnRoom();
     if (!room) return;
+    if (type === 'menu') room.endsAt = null;
     room.cmd = { id: ((room.cmd && room.cmd.id) || 0) + 1, type: type, group: group || null };
     classWriteRoom(room);
     classTeacherSnap = '';
@@ -3444,7 +4000,7 @@ function qrMatrix(text, maskForce) {
     var room = classReadRoom(sess.code);
     if (!room || room.teacherUid !== classUid) return;
     var students = classListStudents(room.code);
-    var snap = JSON.stringify({ mode: room.mode, gamesOpen: room.gamesOpen, difficulty: room.difficulty, board: room.board, bonus: room.bonus, cmd: room.cmd, students: students });
+    var snap = JSON.stringify({ mode: room.mode, gamesOpen: room.gamesOpen, difficulty: room.difficulty, board: room.board, bonus: room.bonus, cmd: room.cmd, groups: room.groups, endsAt: room.endsAt, students: students });
     if (!force && snap === classTeacherSnap) return;
     classTeacherSnap = snap;
     teacherTitle.textContent = 'Rum ' + room.code;
@@ -3459,8 +4015,8 @@ function qrMatrix(text, maskForce) {
     var grupper = room.mode === 'grupper';
     teacherModeLabel.textContent = grupper ? 'Grupper' : 'Hver for sig';
     teacherModeHint.textContent = grupper
-      ? 'Skift til hver for sig, når runden er slut.'
-      : 'Skift til grupper, når runden er slut.';
+      ? 'Eleverne vælger en gruppe og spiller hver for sig. Pointene lægges sammen.'
+      : 'Eleverne spiller hver for sig. Først til 10, medmindre du starter med tid.';
     modeAleneBtn.setAttribute('aria-pressed', grupper ? 'false' : 'true');
     modeGrupperBtn.setAttribute('aria-pressed', grupper ? 'true' : 'false');
     var quarters = room.difficulty === 'quarters';
@@ -3487,41 +4043,32 @@ function qrMatrix(text, maskForce) {
     teacherGamesLabel.textContent = room.gamesOpen ? 'Nye spil er åbne' : 'Nye spil er lukket';
     teacherPlayBtn.hidden = grupper;
     teacherPlayGroups.hidden = !grupper;
-    teacherGroupActions.hidden = !grupper;
-    teacherGroupActions.replaceChildren();
+    teacherGroupActions.hidden = true;
     teacherPlayGroups.replaceChildren();
+    classSyncGroupEditor(room);
     if (grupper) {
-      for (var g = 1; g <= 4; g++) {
-        (function (group) {
-          var count = 0;
-          for (var i = 0; i < students.length; i++) {
-            if (students[i].group === group && students[i].id !== 'teacher') count++;
-          }
-          var readyBtn = document.createElement('button');
-          readyBtn.type = 'button';
-          readyBtn.className = 'btn secondary';
-          readyBtn.textContent = 'Gruppe ' + group + ' er klar' + (count ? ' (' + count + ')' : '');
-          readyBtn.addEventListener('click', function () { classCmd('start', group); });
-          teacherGroupActions.appendChild(readyBtn);
+      var namedGroups = room.groups || [];
+      for (var gi = 0; gi < namedGroups.length; gi++) {
+        (function (gr) {
           var playBtn = document.createElement('button');
           playBtn.type = 'button';
           playBtn.className = 'btn';
-          playBtn.textContent = 'Spil i gruppe ' + group;
-          playBtn.addEventListener('click', function () { startTeacherGame(group); });
+          playBtn.textContent = 'Spil med i ' + gr.name;
+          playBtn.addEventListener('click', function () { startTeacherGame(gr.id); });
           teacherPlayGroups.appendChild(playBtn);
-        })(String(g));
+        })(namedGroups[gi]);
       }
     }
     if (grupper) {
       var grouped = [];
       var ready = 0;
       for (var s = 0; s < students.length; s++) {
-        if (!students[s].group || students[s].id === 'teacher') continue;
+        if (!classGroupById(room, students[s].group) || students[s].id === 'teacher') continue;
         grouped.push(students[s]);
         if (students[s].where !== 'playing') ready++;
       }
       teacherReady.textContent = grouped.length
-        ? (ready + ' af ' + grouped.length + ' i gruppen er klar')
+        ? (ready + ' af ' + grouped.length + ' i en gruppe er klar')
         : 'Ingen har valgt gruppe endnu';
     } else if (!students.length) {
       teacherReady.textContent = 'Ingen elever endnu';
@@ -3539,7 +4086,7 @@ function qrMatrix(text, maskForce) {
     teacherEmpty.hidden = visible.length > 0;
     for (var r = 0; r < visible.length; r++) {
       var st = visible[r];
-      var info = classWhereInfo(st, room.mode);
+      var info = classWhereInfo(st, room);
       var tr = document.createElement('tr');
       var nameTd = document.createElement('td');
       nameTd.textContent = st.name || 'Elev';
@@ -3557,6 +4104,8 @@ function qrMatrix(text, maskForce) {
       tr.appendChild(classTd(classRatio(st.correct, st.wrong)));
       teacherBody.appendChild(tr);
     }
+    classPaintGroupTotals(room, students);
+    classPaintTeacherResult(room, students);
   }
   function classConsume(room) {
     var sess = classSession();
@@ -3696,21 +4245,26 @@ function qrMatrix(text, maskForce) {
   function classTick() {
     var sess = classSession();
     if (!sess) return;
+    classDropStaleGroup();
     if (sess.role === 'teacher') {
       classMaybeEmpty();
       if (!teacherScreen.hidden) classRenderTeacher(false);
       classSyncPlayBoard();
+      classMaybeEndTimed();
+      classPaintPlayMeta();
       return;
     }
     var room = classReadRoom(sess.code);
     if (!room) return;
     classConsume(room);
+    classMaybeEndTimed();
     if (!lobbyScreen.hidden) {
       var stu = classReadStudent(sess.code, sess.id);
       var snap = JSON.stringify(room) + '|' + JSON.stringify(stu) + '|' + classLobbyNote;
       if (snap !== classLobbySnap) classRenderLobby();
     }
     classSyncPlayBoard();
+    classPaintPlayMeta();
   }
   var classBoardSnap = '';
   function classSyncPlayBoard() {
@@ -3740,14 +4294,6 @@ function qrMatrix(text, maskForce) {
     if (learning) drawLearn();
   }
   async function classBoot() {
-    for (var g = 1; g <= 4; g++) {
-      var b = document.createElement('button');
-      b.type = 'button';
-      b.dataset.group = String(g);
-      b.textContent = 'Gruppe ' + g;
-      b.setAttribute('aria-pressed', 'false');
-      lobbyGroups.appendChild(b);
-    }
     var rum = '';
     try { rum = classNormCode(new URLSearchParams(location.search).get('rum') || ''); }
     catch (e) { rum = ''; }
@@ -3849,7 +4395,19 @@ function qrMatrix(text, maskForce) {
   boardFourBtn.addEventListener('click', function () { classSetBoard('four'); });
   bonusOffBtn.addEventListener('click', function () { classSetBonus(false); });
   bonusOnBtn.addEventListener('click', function () { classSetBonus(true); });
-  teacherStartBtn.addEventListener('click', function () { classCmd('start', null); });
+  teacherStartBtn.addEventListener('click', function () { classStartPlay(null); });
+  teacherStartTimed.addEventListener('click', function () {
+    var raw = String(teacherMinutes.value || '').trim();
+    var minutes = /^\d+$/.test(raw) ? parseInt(raw, 10) : 0;
+    if (minutes < 1 || minutes > 60) {
+      teacherTimerError.hidden = false;
+      teacherTimerError.textContent = 'Skriv et helt antal minutter fra 1 til 60.';
+      return;
+    }
+    teacherTimerError.hidden = true;
+    classStartPlay(minutes);
+  });
+  teacherSaveGroups.addEventListener('click', classSaveGroups);
   teacherMenuBtn.addEventListener('click', function () { classCmd('menu', null); });
   teacherGamesBtn.addEventListener('click', classToggleGames);
   teacherLearnBtn.addEventListener('click', function () {
@@ -3889,6 +4447,11 @@ function qrMatrix(text, maskForce) {
       classRenderLobby();
       return;
     }
+    if (classTimerExpired(room)) {
+      classLobbyNote = 'Tiden er gået.';
+      classRenderLobby();
+      return;
+    }
     startClassroomGame();
   });
   lobbyLearn.addEventListener('click', function () {
@@ -3905,6 +4468,7 @@ function qrMatrix(text, maskForce) {
   });
   toTeacherBtn.addEventListener('click', classBackToTeacher);
   winToTeacherBtn.addEventListener('click', classBackToTeacher);
+  window.setInterval(classOnClock, 1000);
   classBoot().catch(function (err) { classNetError(classErrText(err)); });
 
   updatePreview();
