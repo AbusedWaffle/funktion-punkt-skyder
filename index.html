@@ -720,12 +720,12 @@
     </div>
 
     <section class="open-box" id="open-box" aria-labelledby="open-title">
-      <h2 id="open-title">Gå med</h2>
+      <h2 id="open-title">Deltag</h2>
       <p class="open-sub">Tryk på et åbent rum, eller skriv koden fra læreren eller værten.</p>
       <ul class="open-list" id="open-list" aria-live="polite"><li class="open-empty">Henter åbne rum …</li></ul>
       <form class="open-code" id="open-code-form">
         <input id="open-code" type="text" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Kode, f.eks. AB-CDEF" aria-label="Kode">
-        <button class="btn" type="submit">Gå med</button>
+        <button class="btn" type="submit">Deltag</button>
       </form>
       <p id="open-error" class="error" role="alert" hidden></p>
     </section>
@@ -786,7 +786,7 @@
         <p class="fine">Du opretter et spil med kode, link og QR. De andre går med på deres egen telefon. 2 til 4 spillere.</p>
         <p id="online-create-error" class="error" role="alert" hidden></p>
         <button class="btn" type="button" id="online-create">Opret spil</button>
-        <button class="btn secondary" type="button" id="online-join-open">Gå med i et spil</button>
+        <button class="btn secondary" type="button" id="online-join-open">Deltag i et spil</button>
       </div>
       <div id="multi-local-box" class="setup-sub">
       <div class="count-row">
@@ -858,7 +858,7 @@
 
   <section id="screen-join" hidden>
     <form id="join-form" class="setup">
-      <h2>Gå med i rummet</h2>
+      <h2>Deltag i rummet</h2>
       <label class="field">
         <span class="field-label">Kode</span>
         <input id="join-code" type="text" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="f.eks. AB-CDEF">
@@ -868,14 +868,14 @@
         <input id="join-name" type="text" maxlength="20" autocomplete="nickname">
       </label>
       <p id="join-error" class="error" role="alert" hidden></p>
-      <button class="btn" type="submit">Gå med</button>
+      <button class="btn" type="submit">Deltag</button>
       <button class="btn secondary" type="button" id="join-back">Til forsiden</button>
     </form>
   </section>
 
   <section id="screen-online-join" hidden>
     <form id="online-join-form" class="setup">
-      <h2>Gå med i et spil</h2>
+      <h2>Deltag i et spil</h2>
       <label class="field">
         <span class="field-label">Kode</span>
         <input id="online-join-code" type="text" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="f.eks. AB-CDEF">
@@ -885,7 +885,7 @@
         <input id="online-join-name" type="text" maxlength="20" autocomplete="nickname">
       </label>
       <p id="online-join-error" class="error" role="alert" hidden></p>
-      <button class="btn" type="submit">Gå med</button>
+      <button class="btn" type="submit">Deltag</button>
       <button class="btn secondary" type="button" id="online-join-back">Til forsiden</button>
     </form>
   </section>
@@ -5828,7 +5828,7 @@ function qrMatrix(text, maskForce) {
       meta.className = 'open-meta';
       meta.textContent = r.settings;
       b.appendChild(tag); b.appendChild(nm); b.appendChild(ct); b.appendChild(meta);
-      b.setAttribute('aria-label', 'Gå med: ' + nm.textContent + ', ' + ct.textContent);
+      b.setAttribute('aria-label', 'Deltag: ' + nm.textContent + ', ' + ct.textContent);
       li.appendChild(b);
       openList.appendChild(li);
     });
