@@ -604,6 +604,13 @@
   #teacher-link { word-break: break-all; color: var(--accent-dark); }
   #teacher-qr { width: 148px; height: auto; border-radius: 10px; background: #fff; }
   .learn-controls { flex: none; display: grid; gap: 8px; }
+  .wide-picker button { padding: 0 12px; }
+  .setup-sub { display: grid; gap: 12px; }
+  .online-players { margin: 0; padding-left: 1.4em; display: grid; gap: 6px; }
+  .online-players li { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .online-tools { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .learn-board-row { display: flex; align-items: center; gap: 10px; flex: none; flex-wrap: wrap; }
+  .learn-board-row .count-picker button { width: auto; padding: 0 12px; }
   .learn-row {
     display: grid;
     grid-template-columns: auto minmax(4.2rem, 6.2rem) 42px minmax(0, 1fr);
@@ -645,9 +652,9 @@
         <span class="choice-text">Computeren lægger et punkt. Du finder en linje gennem det.</span>
       </button>
       <button type="button" class="choice" id="pick-multi" aria-pressed="false">
-        <span class="choice-kicker">Samme skærm</span>
+        <span class="choice-kicker">Sammen</span>
         <span class="choice-title">Flere spillere</span>
-        <span class="choice-text">I lægger punkter for hinanden og skyder på skift.</span>
+        <span class="choice-text">I lægger punkter for hinanden og skyder på skift. På samme skærm eller hver sin telefon.</span>
       </button>
       <button type="button" class="choice" id="pick-teacher" aria-pressed="false">
         <span class="choice-kicker">Klassen</span>
@@ -673,6 +680,45 @@
     </form>
 
     <form id="multi-form" class="setup" hidden>
+      <div class="count-row">
+        <span class="field-label">Hvor spiller I?</span>
+        <div class="count-picker wide-picker" role="group" aria-label="Hvor spiller I?">
+          <button type="button" id="multi-local" aria-pressed="true">Samme skærm</button>
+          <button type="button" id="multi-online" aria-pressed="false">Hver sin telefon</button>
+        </div>
+      </div>
+      <div id="multi-online-box" class="setup-sub" hidden>
+        <label class="field">
+          <span class="field-label">Dit navn</span>
+          <input id="online-name" type="text" maxlength="20" autocomplete="nickname">
+        </label>
+        <div class="count-row">
+          <span class="field-label">Sværhedsgrad</span>
+          <div class="count-picker wide-picker" role="group" aria-label="Sværhedsgrad">
+            <button type="button" data-oset="difficulty" data-val="positive" aria-pressed="true">Hele tal</button>
+            <button type="button" data-oset="difficulty" data-val="quarters" aria-pressed="false">Decimaltal</button>
+          </div>
+        </div>
+        <div class="count-row">
+          <span class="field-label">Koordinatsystem</span>
+          <div class="count-picker wide-picker" role="group" aria-label="Koordinatsystem">
+            <button type="button" data-oset="board" data-val="one" aria-pressed="true">1 kvadrant</button>
+            <button type="button" data-oset="board" data-val="four" aria-pressed="false">4 kvadranter</button>
+          </div>
+        </div>
+        <div class="count-row">
+          <span class="field-label">Bonuspoint</span>
+          <div class="count-picker wide-picker" role="group" aria-label="Bonuspoint">
+            <button type="button" data-oset="bonus" data-val="off" aria-pressed="true">Fra</button>
+            <button type="button" data-oset="bonus" data-val="on" aria-pressed="false">Til</button>
+          </div>
+        </div>
+        <p class="fine">Du opretter et spil med kode, link og QR. De andre går med på deres egen telefon. 2 til 4 spillere.</p>
+        <p id="online-create-error" class="error" role="alert" hidden></p>
+        <button class="btn" type="button" id="online-create">Opret spil</button>
+        <button class="btn secondary" type="button" id="online-join-open">Gå med i et spil</button>
+      </div>
+      <div id="multi-local-box" class="setup-sub">
       <div class="count-row">
         <span class="field-label">Antal spillere</span>
         <div class="count-picker" role="group" aria-label="Antal spillere">
@@ -708,6 +754,7 @@
         </div>
       </div>
       <button class="btn" type="submit">Start spil</button>
+      </div>
     </form>
 
     <details class="rules" open>
@@ -724,8 +771,9 @@
           <li>Forbi: ingen point, og turen går videre. Kun det seneste skud bliver stående.</li>
           <li>En runde er ét skud fra hver spiller. Når nogen når 10, skyder de andre runden færdig. Bagefter vinder den, der alene har flest point, hvis det er mindst 10. Står flere lige øverst, spilles en runde mere.</li>
         </ul>
+        <p><strong>Hver sin telefon.</strong> Vælg Flere spillere og Hver sin telefon. Én opretter et spil og vælger sværhedsgrad, koordinatsystem og bonuspoint. De andre går med via kode, link eller QR og skriver deres navn. Værten trykker Start spillet, når alle er med. Reglerne er de samme som på samme skærm, men hver telefon kan kun lægge punkter og skyde, når det er dens tur. De andre ser brættet live. Værten kan springe en tur over eller fjerne en spiller, der er faldet fra. Forlader værten spillet, lukkes det for alle.</p>
         <p>Punkter på y-aksen (x = 0) bruges ikke, fordi enhver linje med den rigtige b ville ramme dem.</p>
-        <p><strong>Lærer og elever.</strong> Læreren opretter et rum. Eleverne går med med kode eller link og et navn. Læreren vælger Hver for sig eller Grupper. I grupper navngiver læreren grupperne, og hver elev vælger en af dem. Eleverne spiller stadig alene mod computeren. Pointene lægges sammen i gruppen. Læreren kan sætte en tidsgrænse i hele minutter. Når tiden løber ud, stopper spillet. Uden grupper vinder eleven med flest point. I grupper vinder gruppen med flest point tilsammen. Står flere lige, er det uafgjort. Uden tidsgrænse gælder først til 10. Læreren kan lukke for nye spil, sende alle til menuen og selv hoppe ind i spillet. Under spillet er der altid en knap tilbage til lærermenuen. Læreren vælger sværhedsgrad, koordinatsystem og bonuspoint for rummet. Hele tal: punktet ligger på hele koordinater. Decimaltal: punktet ligger på koordinater i spring på 0,25. 1 kvadrant er akser fra 0 til 10. 4 kvadranter lægger akserne gennem midten, med x og y fra −10 til 10, og stadig ingen punkter på y-aksen. I et rum er a og b fra −10 til 10, i spring på 0,25, samme for begge sværhedsgrader. Med bonuspoint giver et ramt skud 2 point, hvis linjen ikke er vandret. En vandret linje giver 1 point. Uden for et rum er brættet 1 kvadrant, og a og b kan være frie tal.</p>
+        <p><strong>Lærer og elever.</strong> Læreren opretter et rum. Eleverne går med med kode eller link og et navn. Læreren vælger Hver for sig eller Grupper. I grupper navngiver læreren grupperne, og hver elev vælger en af dem. Eleverne spiller stadig alene mod computeren. Pointene lægges sammen i gruppen. Læreren kan sætte en tidsgrænse i hele minutter. Når tiden løber ud, stopper spillet. Uden grupper vinder eleven med flest point. I grupper vinder gruppen med flest point tilsammen. Står flere lige, er det uafgjort. Uden tidsgrænse gælder først til 10. Læreren kan lukke for nye spil, sende alle til menuen og selv hoppe ind i spillet. Under spillet er der altid en knap tilbage til lærermenuen. Læreren vælger sværhedsgrad, koordinatsystem og bonuspoint for rummet. Hele tal: punktet ligger på hele koordinater. Decimaltal: punktet ligger på koordinater i spring på 0,25. 1 kvadrant er akser fra 0 til 10. 4 kvadranter lægger akserne gennem midten, med x og y fra −10 til 10, og stadig ingen punkter på y-aksen. I et rum er a og b fra −10 til 10, i spring på 0,25, samme for begge sværhedsgrader. Med bonuspoint giver et ramt skud 5 point, hvis linjen ikke er vandret. En vandret linje giver 1 point. Uden for et rum er brættet 1 kvadrant, og a og b kan være frie tal.</p>
       </div>
     </details>
   </section>
@@ -746,6 +794,41 @@
       <button class="btn" type="submit">Gå med</button>
       <button class="btn secondary" type="button" id="join-back">Til forsiden</button>
     </form>
+  </section>
+
+  <section id="screen-online-join" hidden>
+    <form id="online-join-form" class="setup">
+      <h2>Gå med i et spil</h2>
+      <label class="field">
+        <span class="field-label">Kode</span>
+        <input id="online-join-code" type="text" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="f.eks. AB-CDEF">
+      </label>
+      <label class="field">
+        <span class="field-label">Dit navn</span>
+        <input id="online-join-name" type="text" maxlength="20" autocomplete="nickname">
+      </label>
+      <p id="online-join-error" class="error" role="alert" hidden></p>
+      <button class="btn" type="submit">Gå med</button>
+      <button class="btn secondary" type="button" id="online-join-back">Til forsiden</button>
+    </form>
+  </section>
+
+  <section id="screen-online" hidden>
+    <div class="setup">
+      <p class="eyebrow">Flere spillere · hver sin telefon</p>
+      <h2 id="online-title">Spil</h2>
+      <div class="room-card" id="online-share">
+        <canvas id="online-qr" width="148" height="148" aria-label="QR-kode til spillet"></canvas>
+        <div class="fine" id="online-code">kode:</div>
+        <a id="online-link" href="" target="_blank" rel="noopener"></a>
+        <button type="button" class="btn secondary" id="online-copy">Kopiér link</button>
+      </div>
+      <p class="fine" id="online-settings"></p>
+      <ol id="online-players" class="online-players"></ol>
+      <p id="online-status"></p>
+      <button type="button" class="btn" id="online-start" hidden>Start spillet</button>
+      <button type="button" class="btn secondary" id="online-leave">Forlad spillet</button>
+    </div>
   </section>
 
   <section id="screen-lobby" hidden>
@@ -879,6 +962,13 @@
       <p><strong>a</strong> er hældningen: hvor meget y ændrer sig, når x vokser med 1. <strong>b</strong> er der, hvor linjen skærer y-aksen.</p>
       <p>For eksempel går <strong>f(x) = 2x + 1</strong> gennem (0, 1) og stiger 2 for hvert skridt til højre.</p>
     </div>
+    <div class="learn-board-row">
+      <span class="field-label">Koordinatsystem</span>
+      <div class="count-picker" role="group" aria-label="Koordinatsystem">
+        <button type="button" id="learn-board-one" aria-pressed="true">1 kvadrant</button>
+        <button type="button" id="learn-board-four" aria-pressed="false">4 kvadranter</button>
+      </div>
+    </div>
     <div class="learn-stage" id="learn-wrap">
       <canvas id="learn-board" width="640" height="640" aria-label="Koordinatsystem til at prøve en linje"></canvas>
     </div>
@@ -908,11 +998,12 @@
         <details class="rules-pop">
           <summary>Regler</summary>
           <div class="rules-card">
-            <p>Rammer hvis |y − (ax + b)| ≤ 0,02. Ingen facit. Énspiller: prøv igen på samme punkt. Flerspiller: turen går videre ved forbi, og den ramte lægger et nyt punkt. Vinder kåres først efter runden, og kun hvis én spiller alene har flest point og mindst 10. I et rum med hele tal ligger punktet på hele koordinater. Med decimaltal ligger det i spring på 0,25. I et rum med bonuspoint giver et ramt skud 2 point, hvis linjen ikke er vandret. En vandret linje giver 1.</p>
+            <p>Rammer hvis |y − (ax + b)| ≤ 0,02. Ingen facit. Énspiller: prøv igen på samme punkt. Flerspiller: turen går videre ved forbi, og den ramte lægger et nyt punkt. Vinder kåres først efter runden, og kun hvis én spiller alene har flest point og mindst 10. I et rum med hele tal ligger punktet på hele koordinater. Med decimaltal ligger det i spring på 0,25. Med bonuspoint giver et ramt skud 5 point, hvis linjen ikke er vandret. En vandret linje giver 1.</p>
           </div>
         </details>
         <button type="button" class="teacher-back" id="to-teacher" hidden>Til lærermenuen</button>
         <button type="button" class="text-btn" id="forfra">Start forfra</button>
+        <div id="online-tools" class="online-tools" hidden></div>
       </header>
       <div class="board-wrap" id="board-wrap">
         <canvas id="board" width="640" height="640" aria-label="Koordinatsystem fra 0 til 10"></canvas>
@@ -976,7 +1067,7 @@
 
   function pointsForShot(hit, a, bonus) {
     if (!hit) return 0;
-    if (bonus && a !== 0) return 2;
+    if (bonus && a !== 0) return 5;
     return 1;
   }
 
@@ -996,6 +1087,7 @@
   }
 
   function pointStep() {
+    if (state.online && onlineMatchData()) return onlineMatchData().difficulty === 'quarters' ? 0.25 : 1;
     if (!state.classroom && !state.teacherPlaying) return 1;
     var room = currentRoom();
     return room && room.difficulty === 'quarters' ? 0.25 : 1;
@@ -1175,6 +1267,9 @@
   var learnNote = document.getElementById('learn-note');
   var openLearnBtn = document.getElementById('open-learn');
   var learnBackBtn = document.getElementById('learn-back');
+  var learnBoardOne = document.getElementById('learn-board-one');
+  var learnBoardFour = document.getElementById('learn-board-four');
+  var learnBoardChoice = null;
   var learnView = 0;
   var learnReturn = 'start';
 
@@ -1206,7 +1301,8 @@
     winner: null,
     timerWin: null,
     classroom: false,
-    teacherPlaying: false
+    teacherPlaying: false,
+    online: false
   };
 
   var shotToken = 0;
@@ -1256,20 +1352,27 @@
   }
 
   function boardSpec() {
+    if (learnScreen && !learnScreen.hidden && learnBoardChoice) {
+      return learnBoardChoice === 'four' ? { min: -10, max: 10, four: true } : { min: 0, max: 10, four: false };
+    }
+    if (state.online && onlineMatchData()) {
+      return onlineMatchData().board === 'four' ? { min: -10, max: 10, four: true } : { min: 0, max: 10, four: false };
+    }
     var room = useRoomBoard() ? currentRoom() : null;
     if (room && room.board === 'four') return { min: -10, max: 10, four: true };
     return { min: 0, max: 10, four: false };
   }
 
   function roomBonus() {
+    if (state.online) return !!(onlineMatchData() && onlineMatchData().bonus);
     if (!state.classroom && !state.teacherPlaying) return false;
     var room = currentRoom();
     return !!(room && room.bonus);
   }
 
   function roomPlayLimits() {
-    if (!state.classroom && !state.teacherPlaying) return null;
-    var room = currentRoom();
+    if (!state.classroom && !state.teacherPlaying && !state.online) return null;
+    var room = state.online ? onlineMatchData() : currentRoom();
     var quarters = !!(room && room.difficulty === 'quarters');
     return {
       min: -10,
@@ -1277,8 +1380,17 @@
       hint: quarters
         ? 'Decimaltal: punktet ligger på koordinater i spring på 0,25.'
         : 'Hele tal: punktet ligger på hele koordinater.',
-      error: 'I dette rum skal a og b være fra −10 til 10, i spring på 0,25.'
+      error: state.online
+        ? 'I dette spil skal a og b være fra −10 til 10, i spring på 0,25.'
+        : 'I dette rum skal a og b være fra −10 til 10, i spring på 0,25.'
     };
+  }
+
+  function placeHintText() {
+    var spec = boardSpec();
+    var dec = pointStep() < 1;
+    if (spec.four) return dec ? 'x og y fra −10 til 10 i spring på 0,25, ikke på y-aksen.' : 'x og y fra −10 til 10, ikke på y-aksen.';
+    return dec ? 'x fra 0,25 til 10 og y fra 0 til 10, i spring på 0,25.' : 'x fra 1 til 10, y fra 0 til 10.';
   }
 
   function coefAllowed(n, lim) {
@@ -1340,7 +1452,7 @@
     var rx = quantizeCoord(x, step);
     var ry = quantizeCoord(y, step);
     if (Math.abs(x - rx) > step / 2 + 1e-9 || Math.abs(y - ry) > step / 2 + 1e-9) return null;
-    if ((state.classroom || state.teacherPlaying) && Math.abs(rx) < 1e-9) {
+    if ((state.classroom || state.teacherPlaying || state.online) && Math.abs(rx) < 1e-9) {
       var spec = boardSpec();
       if (spec.four) rx = x < 0 ? -step : step;
       else rx = step;
@@ -1787,7 +1899,14 @@
     return n;
   }
 
+  function paintLearnBoardPick() {
+    var four = boardSpec().four;
+    learnBoardOne.setAttribute('aria-pressed', four ? 'false' : 'true');
+    learnBoardFour.setAttribute('aria-pressed', four ? 'true' : 'false');
+  }
+
   function drawLearn() {
+    paintLearnBoardPick();
     var w = learnView;
     var h = learnView;
     if (w < 8 || h < 8) return;
@@ -1839,7 +1958,10 @@
     teacherScreen.hidden = true;
     joinScreen.hidden = true;
     lobbyScreen.hidden = true;
+    onlineScreen.hidden = true;
+    onlineJoinScreen.hidden = true;
     learnScreen.hidden = false;
+    learnBoardChoice = null;
     if (classSession()) classTouchWhere('learn');
     syncLearnFromInputs();
     requestAnimationFrame(resizeLearn);
@@ -1915,7 +2037,7 @@
       btn.disabled = state.locked;
       (function (index) {
         btn.addEventListener('click', function () {
-          if (state.locked || state.phase !== 'aim') return;
+          if (state.locked || state.phase !== 'aim' || !onlineCanAct()) return;
           state.targetIndex = index;
           state.formError = '';
           renderUI();
@@ -1987,9 +2109,17 @@
     resultEl.hidden = !showResult;
     resultEl.textContent = state.result || '';
     resultEl.className = 'result ' + (state.resultKind || 'info');
-    bannerEl.hidden = state.phase === 'win' || !state.banner;
-    bannerEl.textContent = state.banner || '';
-    bannerEl.className = 'status ' + (state.bannerKind || 'info');
+    var bannerText = state.banner || '';
+    var bannerKind = state.bannerKind || 'info';
+    if (state.online && state.phase !== 'win' && !onlineCanAct()) {
+      var waitFor = state.players[activeIndex()];
+      var waitRole = state.phase === 'setup' ? ' lægger et punkt.' : (state.phase === 'replace' ? ' lægger et nyt punkt.' : ' skyder.');
+      bannerText = waitFor ? ('Venter på ' + waitFor.name + ', der' + waitRole) : 'Venter …';
+      bannerKind = 'info';
+    }
+    bannerEl.hidden = state.phase === 'win' || !bannerText;
+    bannerEl.textContent = bannerText;
+    bannerEl.className = 'status ' + bannerKind;
     renderReadout();
     renderTargets();
     placeErrorEl.hidden = !state.placeError;
@@ -2004,7 +2134,7 @@
     formErrorEl.hidden = !state.formError;
     formErrorEl.textContent = state.formError || '';
     var playLim = roomPlayLimits();
-    var bonusNote = roomBonus() ? ' Skrå linje giver 2 point. Vandret linje giver 1.' : '';
+    var bonusNote = roomBonus() ? ' Skrå linje giver 5 point. Vandret linje giver 1.' : '';
     shotLimitEl.hidden = !playLim && !bonusNote;
     shotLimitEl.textContent = (playLim ? playLim.hint + ' a og b fra −10 til 10, i spring på 0,25.' : '') + bonusNote;
     coefA.setAttribute('aria-invalid', state.formError ? 'true' : 'false');
@@ -2017,7 +2147,10 @@
     // Til lærermenuen bliver stående under hele spillet, også når det er slut.
     toTeacherBtn.hidden = !state.teacherPlaying;
     winToTeacherBtn.hidden = !state.teacherPlaying;
-    toStartBtn.textContent = state.teacherPlaying ? 'Til lærermenuen' : 'Til forsiden';
+    toStartBtn.textContent = state.teacherPlaying ? 'Til lærermenuen' : (state.online ? 'Forlad spillet' : 'Til forsiden');
+    forfraBtn.textContent = state.online ? 'Forlad spillet' : 'Start forfra';
+    againBtn.hidden = state.online && !onlineIsHost();
+    onlinePaintTools();
     boardHintEl.hidden = !state.hoverText;
     boardHintEl.textContent = state.hoverText || '';
     if (state.phase === 'setup' || state.phase === 'replace') {
@@ -2029,6 +2162,7 @@
     } else {
       canvas.setAttribute('aria-label', boardSpec().four ? 'Koordinatsystem fra −10 til 10.' : 'Koordinatsystem fra 0 til 10.');
     }
+    onlineMaybePush();
   }
 
   function showGame() {
@@ -2037,12 +2171,18 @@
     teacherScreen.hidden = true;
     joinScreen.hidden = true;
     lobbyScreen.hidden = true;
+    onlineScreen.hidden = true;
+    onlineJoinScreen.hidden = true;
     gameScreen.hidden = false;
     renderUI();
     requestAnimationFrame(function () { resize(); });
   }
 
   function toFront() {
+    if (state.online || onlineSession()) {
+      onlineLeave();
+      return;
+    }
     if (state.teacherPlaying) {
       classBackToTeacher();
       return;
@@ -2062,6 +2202,8 @@
     teacherScreen.hidden = true;
     joinScreen.hidden = true;
     lobbyScreen.hidden = true;
+    onlineScreen.hidden = true;
+    onlineJoinScreen.hidden = true;
     if (topHeader) topHeader.hidden = false;
     startScreen.hidden = false;
     classSyncStartLink();
@@ -2116,6 +2258,7 @@
 
   function startMulti() {
     invalidate();
+    state.online = false;
     state.classroom = false;
     state.teacherPlaying = false;
     state.mode = 'multi';
@@ -2126,14 +2269,15 @@
     }
     resetCommon();
     state.phase = 'setup';
-    state.banner = state.players[0].name + ', klik på et ledigt skæringspunkt. x fra 1 til 10, y fra 0 til 10.';
+    state.banner = state.players[0].name + ', klik på et ledigt skæringspunkt. ' + placeHintText();
     state.bannerKind = 'info';
-    state.boardHint = 'Klik på et ledigt skæringspunkt. x fra 1 til 10, y fra 0 til 10.';
+    state.boardHint = 'Klik på et ledigt skæringspunkt. ' + placeHintText();
     showGame();
   }
 
   function playAgain() {
     invalidate();
+    state.online = false;
     state.classroom = false;
     state.teacherPlaying = false;
     var mode = state.mode;
@@ -2153,9 +2297,9 @@
     } else {
       state.mode = 'multi';
       state.phase = 'setup';
-      state.banner = players[0].name + ', klik på et ledigt skæringspunkt. x fra 1 til 10, y fra 0 til 10.';
+      state.banner = players[0].name + ', klik på et ledigt skæringspunkt. ' + placeHintText();
       state.bannerKind = 'info';
-      state.boardHint = 'Klik på et ledigt skæringspunkt. x fra 1 til 10, y fra 0 til 10.';
+      state.boardHint = 'Klik på et ledigt skæringspunkt. ' + placeHintText();
       showGame();
     }
   }
@@ -2229,8 +2373,8 @@
     var spot = fn + ' rammer (' + x + ', ' + y + ').';
     var text;
     if (bonus) {
-      text = (pts === 2
-        ? 'Ramt. 2 point, fordi linjen ikke er vandret.'
+      text = (pts === 5
+        ? 'Ramt. 5 point, fordi linjen ikke er vandret.'
         : 'Ramt. 1 point, fordi linjen er vandret.') + ' ' + spot;
     } else if (shooterName) {
       text = 'Ramt! ' + shooterName + ' får 1 point. ' + spot;
@@ -2359,6 +2503,7 @@
 
   function onSubmit(e) {
     e.preventDefault();
+    if (!onlineCanAct()) return;
     if ((state.classroom || state.teacherPlaying) && classTimerExpired(currentRoom())) {
       classMaybeEndTimed();
       return;
@@ -2385,6 +2530,7 @@
       return;
     }
     state.locked = true;
+    if (state.online) onlineActed = true;
     var earlyHit = isHit(target.x, target.y, a, b);
     var earlyWho = state.mode === 'multi' ? state.players[state.turn].name : null;
     state.result = earlyHit
@@ -2401,6 +2547,7 @@
   }
 
   function commitPlace(x, y) {
+    if (state.online) onlineActed = true;
     if (state.phase === 'setup') {
       state.players[state.setupIndex].point = { x: x, y: y };
       state.setupIndex += 1;
@@ -2414,7 +2561,7 @@
         return;
       }
       var next = state.players[state.setupIndex];
-      state.banner = next.name + ', klik på et ledigt skæringspunkt. x fra 1 til 10, y fra 0 til 10.';
+      state.banner = next.name + ', klik på et ledigt skæringspunkt. ' + placeHintText();
       state.bannerKind = 'info';
       state.hover = null;
       state.hoverText = '';
@@ -2477,6 +2624,7 @@
 
   canvas.addEventListener('pointerdown', function (e) {
     if (e.button != null && e.button !== 0) return;
+    if (!onlineCanAct()) return;
     if (state.phase === 'aim') {
       if ((state.classroom || state.teacherPlaying) && classTimerExpired(currentRoom())) {
         classMaybeEndTimed();
@@ -2497,6 +2645,7 @@
 
   canvas.addEventListener('pointermove', function (e) {
     if (state.phase !== 'setup' && state.phase !== 'replace') return;
+    if (!onlineCanAct()) return;
     var pos = pointerPos(e);
     var pt = snap(pos.px, pos.py, pos.w, pos.h);
     var text = '';
@@ -2553,6 +2702,7 @@
   });
   multiForm.addEventListener('submit', function (e) {
     e.preventDefault();
+    if (onlineMode) { onlineCreateClick(); return; }
     startMulti();
   });
   countButtons.forEach(function (btn) {
@@ -2567,6 +2717,10 @@
     });
   });
   againBtn.addEventListener('click', function () {
+    if (state.online) {
+      if (onlineIsHost()) onlineStartGame();
+      return;
+    }
     if (state.teacherPlaying) {
       var roomNow = currentRoom();
       if (roomNow && classTimerExpired(roomNow)) {
@@ -2610,6 +2764,8 @@
   learnB.addEventListener('input', syncLearnFromInputs);
   learnSignA.addEventListener('click', function () { toggleSign(learnA); });
   learnSignB.addEventListener('click', function () { toggleSign(learnB); });
+  learnBoardOne.addEventListener('click', function () { learnBoardChoice = 'one'; drawLearn(); });
+  learnBoardFour.addEventListener('click', function () { learnBoardChoice = 'four'; drawLearn(); });
   learnSliderA.addEventListener('input', syncLearnFromSliders);
   learnSliderB.addEventListener('input', syncLearnFromSliders);
 
@@ -3754,6 +3910,8 @@ function qrMatrix(text, maskForce) {
     teacherScreen.hidden = true;
     joinScreen.hidden = true;
     lobbyScreen.hidden = true;
+    onlineScreen.hidden = true;
+    onlineJoinScreen.hidden = true;
   }
   function classSyncStartLink() {
     var sess = classSession();
@@ -4033,9 +4191,9 @@ function qrMatrix(text, maskForce) {
       : 'Akser fra 0 til 10. Ingen punkter på y-aksen.';
     boardOneBtn.setAttribute('aria-pressed', four ? 'false' : 'true');
     boardFourBtn.setAttribute('aria-pressed', four ? 'true' : 'false');
-    teacherBonusLabel.textContent = room.bonus ? 'Skrå linje giver 2' : 'Fra';
+    teacherBonusLabel.textContent = room.bonus ? 'Skrå linje giver 5' : 'Fra';
     teacherBonusHint.textContent = room.bonus
-      ? 'Et ramt skud, der ikke er vandret, giver 2 point. En vandret linje giver 1.'
+      ? 'Et ramt skud, der ikke er vandret, giver 5 point. En vandret linje giver 1.'
       : 'Hvert ramt skud giver 1 point.';
     bonusOffBtn.setAttribute('aria-pressed', room.bonus ? 'false' : 'true');
     bonusOnBtn.setAttribute('aria-pressed', room.bonus ? 'true' : 'false');
@@ -4336,6 +4494,688 @@ function qrMatrix(text, maskForce) {
     else classSyncStartLink();
   }
 
+  // Online "Flere spillere" på hver sin telefon. Samlingen funktionPunktSkyderMatches.
+  // Reglerne: alle anonymt loggede ind kan læse et spil med kendt kode (ingen listning),
+  // kun spillere i spillet kan skrive, og kun værten kan slette det.
+  var MATCH_COLLECTION = 'funktionPunktSkyderMatches';
+  var ONLINE_SESS = 'fps-online-session';
+  var onlineScreen = document.getElementById('screen-online');
+  var onlineJoinScreen = document.getElementById('screen-online-join');
+  var onlineCache = { code: '', data: null, seen: false };
+  var onlineUnsub = null;
+  var onlineActed = false;
+  var onlineLastJson = '';
+  var onlineRev = 0;
+  var onlineMode = false;
+  var onlineNote = '';
+  var onlineQrFor = '';
+  var onlineSettings = { difficulty: 'positive', board: 'one', bonus: false };
+  var multiLocalBtn = document.getElementById('multi-local');
+  var multiOnlineBtn = document.getElementById('multi-online');
+  var multiLocalBox = document.getElementById('multi-local-box');
+  var multiOnlineBox = document.getElementById('multi-online-box');
+  var onlineNameInput = document.getElementById('online-name');
+  var onlineCreateBtn = document.getElementById('online-create');
+  var onlineCreateError = document.getElementById('online-create-error');
+  var onlineJoinOpen = document.getElementById('online-join-open');
+  var onlineJoinForm = document.getElementById('online-join-form');
+  var onlineJoinCode = document.getElementById('online-join-code');
+  var onlineJoinName = document.getElementById('online-join-name');
+  var onlineJoinError = document.getElementById('online-join-error');
+  var onlineJoinBack = document.getElementById('online-join-back');
+  var onlineTitle = document.getElementById('online-title');
+  var onlineQr = document.getElementById('online-qr');
+  var onlineCodeEl = document.getElementById('online-code');
+  var onlineLink = document.getElementById('online-link');
+  var onlineCopy = document.getElementById('online-copy');
+  var onlineSettingsEl = document.getElementById('online-settings');
+  var onlinePlayersEl = document.getElementById('online-players');
+  var onlineStatus = document.getElementById('online-status');
+  var onlineStartBtn = document.getElementById('online-start');
+  var onlineLeaveBtn = document.getElementById('online-leave');
+  var onlineTools = document.getElementById('online-tools');
+
+  function onlineMatchData() { return onlineCache ? onlineCache.data : null; }
+  function onlineSession() {
+    try { return JSON.parse(sessionStorage.getItem(ONLINE_SESS) || 'null'); }
+    catch (e) { return null; }
+  }
+  function onlineSaveSession(s) {
+    if (!s) sessionStorage.removeItem(ONLINE_SESS);
+    else sessionStorage.setItem(ONLINE_SESS, JSON.stringify(s));
+  }
+  function onlineIsHost() {
+    var m = onlineMatchData();
+    return !!(m && classUid && m.hostUid === classUid);
+  }
+  function onlineMyIndex() {
+    for (var i = 0; i < state.players.length; i++) {
+      if (state.players[i].uid && state.players[i].uid === classUid) return i;
+    }
+    return -1;
+  }
+  function onlineCanAct() {
+    if (!state.online) return true;
+    var me = onlineMyIndex();
+    return me >= 0 && activeIndex() === me;
+  }
+  function onlineParse(id, d) {
+    d = d || {};
+    var uids = Array.isArray(d.playerUids) ? d.playerUids.filter(function (u) { return typeof u === 'string' && u; }) : [];
+    var raw = [];
+    try { raw = JSON.parse(typeof d.members === 'string' ? d.members : '[]'); } catch (e) { raw = []; }
+    if (!Array.isArray(raw)) raw = [];
+    var members = [];
+    raw.forEach(function (m) {
+      if (!m || typeof m.u !== 'string' || uids.indexOf(m.u) < 0) return;
+      if (members.some(function (x) { return x.u === m.u; })) return;
+      members.push({ u: m.u, n: cleanName(m.n, 'Spiller') });
+    });
+    uids.forEach(function (u) {
+      if (!members.some(function (x) { return x.u === u; })) members.push({ u: u, n: 'Spiller' });
+    });
+    return {
+      code: d.code || id,
+      hostUid: d.hostUid || '',
+      status: d.status === 'playing' ? 'playing' : 'lobby',
+      difficulty: d.difficulty === 'quarters' ? 'quarters' : 'positive',
+      board: d.board === 'four' ? 'four' : 'one',
+      bonus: d.bonus === true,
+      uids: uids,
+      members: members,
+      game: typeof d.game === 'string' ? d.game : null,
+      rev: typeof d.rev === 'number' ? d.rev : 0
+    };
+  }
+  function onlineRef(code) { return classFs.doc(classDb, MATCH_COLLECTION, code); }
+  function onlineMembersJson(list) {
+    return JSON.stringify(list.map(function (m) { return { u: m.u, n: m.n }; }));
+  }
+  function onlineJoinUrl(code) {
+    try {
+      if (location.protocol === 'http:' || location.protocol === 'https:') {
+        var u = new URL(location.href);
+        u.search = '?spil=' + code;
+        u.hash = '';
+        return u.toString();
+      }
+    } catch (e) {}
+    return 'https://abusedwaffle.github.io/funktion-punkt-skyder/?spil=' + code;
+  }
+  function onlineSetQuery(code) {
+    try { history.replaceState(null, '', (location.pathname || '') + (code ? ('?spil=' + code) : '')); } catch (e) {}
+  }
+  function onlineErrText(err) {
+    var code = (err && err.code) ? String(err.code) : '';
+    if (code.indexOf('permission-denied') >= 0) return 'Firebase afviste handlingen. Prøv igen.';
+    return 'Kunne ikke forbinde til spillet. Prøv igen.';
+  }
+  function onlineStopWatch() {
+    if (onlineUnsub) { try { onlineUnsub(); } catch (e) {} }
+    onlineUnsub = null;
+  }
+  function onlineWatch(code) {
+    onlineStopWatch();
+    onlineCache = { code: code, data: null, seen: false };
+    return new Promise(function (resolve) {
+      var first = true;
+      onlineUnsub = classFs.onSnapshot(onlineRef(code), function (snap) {
+        onlineCache.data = snap.exists() ? onlineParse(snap.id, snap.data()) : null;
+        if (onlineCache.data) onlineCache.seen = true;
+        if (first) { first = false; resolve(); }
+        else onlineOnRemote();
+      }, function (err) {
+        classNetError(onlineErrText(err));
+        if (first) { first = false; resolve(); }
+      });
+    });
+  }
+  function onlineHide() {
+    classHideScreens();
+  }
+  function onlineEnd(msg) {
+    onlineStopWatch();
+    onlineSaveSession(null);
+    onlineCache = { code: '', data: null, seen: false };
+    onlineActed = false;
+    onlineLastJson = '';
+    onlineRev = 0;
+    onlineNote = '';
+    invalidate();
+    state.online = false;
+    state.phase = 'start';
+    state.players = [];
+    onlineSetQuery('');
+    classShowStart();
+    classNetError(msg || '');
+  }
+  function onlineEnter(m) {
+    if (m.status === 'playing' && m.game) onlineApplyGame(m, true);
+    else onlineShowLobby();
+  }
+  function onlineOnRemote() {
+    var sess = onlineSession();
+    if (!sess) return;
+    var m = onlineMatchData();
+    if (!m) { onlineEnd(onlineIsHost() ? '' : 'Værten har lukket spillet.'); return; }
+    if (classUid && m.uids.indexOf(classUid) < 0) { onlineEnd('Du er ikke længere med i spillet.'); return; }
+    if (m.status === 'playing' && m.game) { onlineApplyGame(m, false); return; }
+    if (state.online) {
+      invalidate();
+      state.online = false;
+      state.phase = 'start';
+      onlineNote = 'For få spillere tilbage. Spillet er stoppet.';
+      onlineShowLobby();
+      return;
+    }
+    if (!onlineScreen.hidden) onlineRenderLobby();
+  }
+  function onlineNum(v, lo, hi, dflt) {
+    var n = Number(v);
+    if (!Number.isFinite(n)) return dflt;
+    return Math.min(hi, Math.max(lo, n));
+  }
+  function onlinePt(p) {
+    if (!p || typeof p !== 'object') return null;
+    var x = Number(p.x), y = Number(p.y);
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+    return { x: x, y: y };
+  }
+  function onlineSnapshotJson() {
+    var ls = state.lastShot;
+    return JSON.stringify({
+      v: 1,
+      phase: state.phase,
+      players: state.players.map(function (p) { return { u: p.uid, n: p.name, s: p.score, p: p.point }; }),
+      turn: state.turn,
+      setupIndex: state.setupIndex,
+      replaceIndex: state.replaceIndex,
+      shotsThisRound: state.shotsThisRound,
+      targetIndex: state.targetIndex,
+      lastShot: ls ? { a: ls.a, b: ls.b, by: ls.by, hit: !!ls.hit, x: ls.x, y: ls.y } : null,
+      hitLines: state.hitLines.slice(-30).map(function (l) { return { a: l.a, b: l.b, c: l.color }; }),
+      result: String(state.result || '').slice(0, 400),
+      resultKind: state.resultKind,
+      winner: state.winner,
+      banner: String(state.banner || '').slice(0, 400),
+      bannerKind: state.bannerKind
+    });
+  }
+  function onlineMaybePush() {
+    if (!state.online || !onlineActed) return;
+    var sess = onlineSession();
+    if (!sess || !classFs) return;
+    var json = onlineSnapshotJson();
+    if (json === onlineLastJson) return;
+    onlineLastJson = json;
+    var m = onlineMatchData();
+    onlineRev = Math.max(onlineRev, m ? m.rev : 0) + 1;
+    classFs.updateDoc(onlineRef(sess.code), { game: json, rev: onlineRev, updated: Date.now() })
+      .catch(function (err) { classNetError(onlineErrText(err)); });
+  }
+  function onlineApplyGame(m, force) {
+    if (!force && m.rev < onlineRev) return;
+    if (!force && m.game === onlineLastJson && state.online && !gameScreen.hidden) { onlineRev = Math.max(onlineRev, m.rev); return; }
+    var g;
+    try { g = JSON.parse(m.game); } catch (e) { return; }
+    if (!g || !Array.isArray(g.players) || g.players.length < 2) return;
+    var phases = ['setup', 'aim', 'replace', 'win'];
+    if (phases.indexOf(g.phase) < 0) return;
+    var wasOn = state.online && !gameScreen.hidden;
+    var hitsBefore = state.hitLines.length;
+    var prevScores = state.players.map(function (p) { return p.score; }).join(',');
+    onlineRev = Math.max(onlineRev, m.rev);
+    onlineLastJson = m.game;
+    onlineActed = false;
+    invalidate();
+    var n = g.players.length;
+    state.online = true;
+    state.classroom = false;
+    state.teacherPlaying = false;
+    state.mode = 'multi';
+    state.players = g.players.slice(0, 4).map(function (p, i) {
+      return { uid: String(p.u || ''), name: cleanName(p.n, 'Spiller ' + (i + 1)), color: COLORS[i % COLORS.length], score: Math.max(0, Math.floor(onlineNum(p.s, 0, 1e6, 0))), point: onlinePt(p.p) };
+    });
+    n = state.players.length;
+    function idx(v) { return (v == null) ? null : Math.floor(onlineNum(v, 0, n - 1, 0)); }
+    state.phase = g.phase;
+    state.turn = idx(g.turn) || 0;
+    state.setupIndex = Math.floor(onlineNum(g.setupIndex, 0, n, 0));
+    state.replaceIndex = idx(g.replaceIndex);
+    state.shotsThisRound = Math.floor(onlineNum(g.shotsThisRound, 0, n, 0));
+    state.targetIndex = idx(g.targetIndex);
+    var ls = g.lastShot;
+    state.lastShot = ls ? {
+      a: Number(ls.a), b: Number(ls.b), fn: formatFunction(Number(ls.a), Number(ls.b)), by: idx(ls.by) || 0,
+      color: COLORS[(idx(ls.by) || 0) % COLORS.length], hit: !!ls.hit, x: Number(ls.x), y: Number(ls.y)
+    } : null;
+    state.hitLines = Array.isArray(g.hitLines) ? g.hitLines.map(function (l) {
+      return { a: Number(l.a), b: Number(l.b), color: typeof l.c === 'string' && /^#[0-9a-f]{6}$/i.test(l.c) ? l.c : TARGET_COLOR };
+    }) : [];
+    state.result = typeof g.result === 'string' ? g.result : '';
+    state.resultKind = g.resultKind === 'good' || g.resultKind === 'bad' ? g.resultKind : 'info';
+    state.banner = typeof g.banner === 'string' ? g.banner : '';
+    state.bannerKind = g.bannerKind === 'good' || g.bannerKind === 'bad' ? g.bannerKind : 'info';
+    state.winner = state.phase === 'win' ? (idx(g.winner) || 0) : null;
+    state.timerWin = null;
+    state.locked = state.phase === 'win';
+    state.placeError = '';
+    state.formError = '';
+    state.hover = null;
+    state.hoverText = '';
+    if (!onlineCanAct()) state.sheetOpen = false;
+    if (!wasOn || prevScores === '') seenScores.clear();
+    var newHit = wasOn && state.lastShot && state.lastShot.hit && (state.hitLines.length > hitsBefore || state.phase === 'replace');
+    state.flash = newHit ? { x: state.lastShot.x, y: state.lastShot.y, t: performance.now() } : null;
+    if (gameScreen.hidden) {
+      showGame();
+    } else {
+      renderUI();
+      draw();
+      if (newHit) animateFlash();
+    }
+  }
+  function onlinePaintTools() {
+    if (!onlineTools) return;
+    var show = state.online && onlineIsHost() && state.phase !== 'win' && !gameScreen.hidden;
+    onlineTools.hidden = !show;
+    onlineTools.replaceChildren();
+    if (!show) return;
+    var skip = document.createElement('button');
+    skip.type = 'button';
+    skip.className = 'text-btn';
+    skip.textContent = 'Spring tur over';
+    skip.addEventListener('click', onlineSkip);
+    onlineTools.appendChild(skip);
+    state.players.forEach(function (p) {
+      if (!p.uid || p.uid === classUid) return;
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'text-btn';
+      b.textContent = 'Fjern ' + p.name;
+      b.addEventListener('click', function () {
+        if (!window.confirm('Fjern ' + p.name + ' fra spillet?')) return;
+        onlineRemoveMember(p.uid).catch(function (err) { classNetError(onlineErrText(err)); });
+      });
+      onlineTools.appendChild(b);
+    });
+  }
+  function onlineFreePoints() {
+    var spec = boardSpec();
+    var step = pointStep();
+    var xs = latticeValues(spec.four ? -10 : (step === 1 ? 1 : step), spec.max, step);
+    var ys = latticeValues(spec.four ? -10 : 0, spec.max, step);
+    var out = [];
+    xs.forEach(function (x) {
+      if (Math.abs(x) < 1e-9) return;
+      ys.forEach(function (y) { if (canPlacePoint(x, y) && !occupied(x, y)) out.push({ x: x, y: y }); });
+    });
+    return out;
+  }
+  function onlineSkip() {
+    if (!state.online || !onlineIsHost() || state.phase === 'win') return;
+    invalidate();
+    var who = state.players[activeIndex()];
+    onlineActed = true;
+    if (state.phase === 'aim') {
+      state.lastShot = null;
+      state.result = (who ? who.name : 'Spilleren') + ' sprang turen over.';
+      state.resultKind = 'info';
+      completeShot();
+      return;
+    }
+    if (state.phase === 'setup' || state.phase === 'replace') {
+      var free = onlineFreePoints();
+      if (!free.length) return;
+      var pt = free[Math.floor(Math.random() * free.length)];
+      state.result = (who ? who.name : 'Spilleren') + ' sprang over. Punktet blev lagt tilfældigt.';
+      state.resultKind = 'info';
+      commitPlace(pt.x, pt.y);
+    }
+  }
+  // Fjerner en spiller fra det lokale spil. Returnerer false, hvis der er færre end 2 tilbage.
+  function onlineDropFromGame(uid) {
+    var i = -1;
+    for (var k = 0; k < state.players.length; k++) if (state.players[k].uid === uid) i = k;
+    if (i < 0) return state.players.length >= 2;
+    var gone = state.players[i].name;
+    var wasPhase = state.phase;
+    var shooterGone = state.turn === i;
+    state.players.splice(i, 1);
+    state.players.forEach(function (p, j) { p.color = COLORS[j % COLORS.length]; });
+    var n = state.players.length;
+    if (n < 2) return false;
+    seenScores.clear();
+    state.hitLines = [];
+    state.lastShot = null;
+    var note = gone + ' er ikke længere med.';
+    if (wasPhase === 'win') {
+      if (state.winner === i) state.winner = null;
+      else if (state.winner > i) state.winner -= 1;
+      if (state.winner == null) state.winner = 0;
+      return true;
+    }
+    if (wasPhase === 'setup') {
+      if (state.setupIndex > i) state.setupIndex -= 1;
+      if (state.setupIndex >= n) {
+        state.turn = 0;
+        state.shotsThisRound = 0;
+        beginTurn(note);
+      } else {
+        state.banner = state.players[state.setupIndex].name + ', klik på et ledigt skæringspunkt. ' + placeHintText();
+        renderUI();
+        draw();
+      }
+      return true;
+    }
+    if (state.turn > i) state.turn -= 1;
+    if (state.turn >= n) state.turn = 0;
+    if (state.shotsThisRound >= n) state.shotsThisRound = 0;
+    if (wasPhase === 'replace') {
+      if (state.replaceIndex === i) {
+        state.replaceIndex = null;
+        if (shooterGone) { beginTurn(note); return true; }
+        completeShot();
+        return true;
+      }
+      if (state.replaceIndex > i) state.replaceIndex -= 1;
+      if (shooterGone) state.turn = (state.turn - 1 + n) % n;
+      state.result = note;
+      renderUI();
+      draw();
+      return true;
+    }
+    beginTurn(note);
+    return true;
+  }
+  async function onlineRemoveMember(uid) {
+    var sess = onlineSession();
+    var m = onlineMatchData();
+    if (!sess || !m) return;
+    var status = m.status;
+    var gameJson = m.game;
+    if (m.status === 'playing' && state.online) {
+      onlineActed = false;
+      var keep = onlineDropFromGame(uid);
+      if (!keep) { status = 'lobby'; gameJson = null; }
+      else gameJson = onlineSnapshotJson();
+    }
+    onlineRev = Math.max(onlineRev, m.rev) + 1;
+    onlineLastJson = gameJson || '';
+    var rev = onlineRev;
+    var ref = onlineRef(sess.code);
+    await classFs.runTransaction(classDb, async function (tx) {
+      var snap = await tx.get(ref);
+      if (!snap.exists()) return;
+      var cur = onlineParse(snap.id, snap.data());
+      var upd = {
+        playerUids: cur.uids.filter(function (u) { return u !== uid; }),
+        members: onlineMembersJson(cur.members.filter(function (x) { return x.u !== uid; })),
+        updated: Date.now()
+      };
+      if (cur.status === 'playing') {
+        upd.status = status;
+        upd.game = gameJson;
+        upd.rev = rev;
+      }
+      tx.update(ref, upd);
+    });
+  }
+  async function onlineLeave() {
+    var sess = onlineSession();
+    var m = onlineMatchData();
+    try {
+      if (sess && classFs && m) {
+        if (m.hostUid === classUid) await classFs.deleteDoc(onlineRef(sess.code));
+        else if (m.uids.indexOf(classUid) >= 0) await onlineRemoveMember(classUid);
+      }
+    } catch (err) {
+      onlineEnd(onlineErrText(err));
+      return;
+    }
+    onlineEnd('');
+  }
+  function onlinePaintSettingsPicker() {
+    multiOnlineBox.querySelectorAll('[data-oset]').forEach(function (b) {
+      var key = b.dataset.oset;
+      var val = key === 'bonus' ? (onlineSettings.bonus ? 'on' : 'off') : onlineSettings[key];
+      b.setAttribute('aria-pressed', b.dataset.val === val ? 'true' : 'false');
+    });
+  }
+  function onlineSetMode(on) {
+    onlineMode = on;
+    multiLocalBtn.setAttribute('aria-pressed', on ? 'false' : 'true');
+    multiOnlineBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    multiLocalBox.hidden = on;
+    multiOnlineBox.hidden = !on;
+    onlinePaintSettingsPicker();
+  }
+  function onlineSettingsText(m) {
+    return (m.difficulty === 'quarters' ? 'Decimaltal' : 'Hele tal') + ' · ' + (m.board === 'four' ? '4 kvadranter' : '1 kvadrant') + ' · ' + (m.bonus ? 'Bonuspoint: skrå linje giver 5' : 'Bonuspoint fra') + ' · Først til 10';
+  }
+  function onlineShowLobby() {
+    onlineHide();
+    if (topHeader) topHeader.hidden = false;
+    onlineScreen.hidden = false;
+    onlineRenderLobby();
+  }
+  function onlineRenderLobby() {
+    var m = onlineMatchData();
+    var sess = onlineSession();
+    if (!m || !sess) return;
+    var host = m.hostUid === classUid;
+    onlineTitle.textContent = 'Spil ' + m.code;
+    var url = onlineJoinUrl(m.code);
+    onlineCodeEl.textContent = 'kode: ' + m.code;
+    onlineLink.href = url;
+    onlineLink.textContent = url;
+    if (onlineQrFor !== url) {
+      try { drawQr(onlineQr, url); onlineQrFor = url; } catch (e) {}
+    }
+    onlineSettingsEl.textContent = onlineSettingsText(m);
+    onlinePlayersEl.replaceChildren();
+    m.members.forEach(function (mem, i) {
+      var li = document.createElement('li');
+      var dot = document.createElement('span');
+      dot.className = 'dot';
+      dot.style.background = COLORS[i % COLORS.length];
+      li.appendChild(dot);
+      var t = document.createElement('span');
+      t.textContent = mem.n + (mem.u === m.hostUid ? ' (vært)' : '') + (mem.u === classUid ? ' · dig' : '');
+      li.appendChild(t);
+      if (host && mem.u !== classUid) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'text-btn';
+        b.textContent = 'Fjern';
+        b.addEventListener('click', function () {
+          onlineRemoveMember(mem.u).catch(function (err) { classNetError(onlineErrText(err)); });
+        });
+        li.appendChild(b);
+      }
+      onlinePlayersEl.appendChild(li);
+    });
+    var count = m.members.length;
+    var msg;
+    if (host) msg = count < 2 ? 'Venter på mindst én spiller mere.' : (count + ' spillere er klar. Tryk Start spillet, når alle er med.');
+    else msg = 'Venter på, at værten starter spillet.';
+    if (count >= 4) msg += ' Spillet er fuldt.';
+    if (onlineNote) msg = onlineNote + ' ' + msg;
+    onlineStatus.textContent = msg;
+    onlineStartBtn.hidden = !host;
+    onlineStartBtn.disabled = count < 2;
+    onlineLeaveBtn.textContent = host ? 'Luk spillet' : 'Forlad spillet';
+  }
+  function onlineStartGame() {
+    var m = onlineMatchData();
+    var sess = onlineSession();
+    if (!m || !sess || m.hostUid !== classUid) return;
+    if (m.members.length < 2) { onlineNote = ''; onlineShowLobby(); return; }
+    invalidate();
+    onlineNote = '';
+    state.online = true;
+    state.classroom = false;
+    state.teacherPlaying = false;
+    state.mode = 'multi';
+    state.players = m.members.slice(0, 4).map(function (mem, i) {
+      var p = freshPlayer(mem.n, COLORS[i % COLORS.length]);
+      p.uid = mem.u;
+      return p;
+    });
+    resetCommon();
+    state.phase = 'setup';
+    state.banner = state.players[0].name + ', klik på et ledigt skæringspunkt. ' + placeHintText();
+    state.bannerKind = 'info';
+    state.boardHint = 'Klik på et ledigt skæringspunkt. ' + placeHintText();
+    var json = onlineSnapshotJson();
+    onlineLastJson = json;
+    onlineRev = Math.max(onlineRev, m.rev) + 1;
+    onlineActed = false;
+    showGame();
+    classFs.updateDoc(onlineRef(sess.code), { status: 'playing', game: json, rev: onlineRev, updated: Date.now() })
+      .catch(function (err) { classNetError(onlineErrText(err)); });
+  }
+  async function onlineCreate(name) {
+    await classFirebase();
+    for (var attempt = 0; attempt < 6; attempt++) {
+      var code = classRand(2) + '-' + classRand(4);
+      var ref = onlineRef(code);
+      var snap = await classFs.getDoc(ref);
+      if (snap.exists()) continue;
+      await classFs.setDoc(ref, {
+        code: code,
+        hostUid: classUid,
+        status: 'lobby',
+        createdAt: classFs.serverTimestamp(),
+        difficulty: onlineSettings.difficulty,
+        board: onlineSettings.board,
+        bonus: onlineSettings.bonus,
+        playerUids: [classUid],
+        members: onlineMembersJson([{ u: classUid, n: name }]),
+        game: null,
+        rev: 0,
+        updated: Date.now()
+      });
+      onlineSaveSession({ code: code, name: name });
+      onlineSetQuery(code);
+      await onlineWatch(code);
+      onlineNote = '';
+      onlineShowLobby();
+      return;
+    }
+    throw new Error('Ingen ledig kode');
+  }
+  async function onlineJoin(code, name) {
+    await classFirebase();
+    var ref = onlineRef(code);
+    var err = await classFs.runTransaction(classDb, async function (tx) {
+      var snap = await tx.get(ref);
+      if (!snap.exists()) return 'Spillet findes ikke. Tjek koden.';
+      var m = onlineParse(snap.id, snap.data());
+      if (m.uids.indexOf(classUid) >= 0) return '';
+      if (m.status !== 'lobby') return 'Spillet er allerede i gang.';
+      if (m.uids.length >= 4) return 'Spillet er fuldt. Højst 4 spillere.';
+      tx.update(ref, {
+        playerUids: m.uids.concat([classUid]),
+        members: onlineMembersJson(m.members.concat([{ u: classUid, n: name }])),
+        updated: Date.now()
+      });
+      return '';
+    });
+    if (err) return err;
+    onlineSaveSession({ code: code, name: name });
+    onlineSetQuery(code);
+    await onlineWatch(code);
+    var m2 = onlineMatchData();
+    if (!m2) { onlineEnd('Spillet findes ikke længere.'); return ''; }
+    onlineNote = '';
+    onlineEnter(m2);
+    return '';
+  }
+  function onlineShowJoin(prefill) {
+    onlineHide();
+    if (topHeader) topHeader.hidden = false;
+    onlineJoinScreen.hidden = false;
+    onlineJoinError.hidden = true;
+    if (prefill) onlineJoinCode.value = prefill;
+    window.setTimeout(function () { (onlineJoinCode.value ? onlineJoinName : onlineJoinCode).focus(); }, 0);
+  }
+  function onlineCreateClick() {
+    var name = cleanName(onlineNameInput.value, '');
+    if (!name) {
+      onlineCreateError.hidden = false;
+      onlineCreateError.textContent = 'Skriv dit navn.';
+      return;
+    }
+    onlineCreateError.hidden = true;
+    onlineCreateBtn.disabled = true;
+    onlineCreate(name).then(function () {
+      onlineCreateBtn.disabled = false;
+    }, function (err) {
+      onlineCreateBtn.disabled = false;
+      onlineCreateError.hidden = false;
+      onlineCreateError.textContent = onlineErrText(err);
+    });
+  }
+  async function onlineBoot() {
+    var spil = '';
+    try { spil = classNormCode(new URLSearchParams(location.search).get('spil') || ''); } catch (e) { spil = ''; }
+    var sess = onlineSession();
+    if (sess && sess.code) {
+      try {
+        await classFirebase();
+        await onlineWatch(sess.code);
+        var m = onlineMatchData();
+        if (m && m.uids.indexOf(classUid) >= 0) { onlineEnter(m); return; }
+      } catch (err) {}
+      onlineStopWatch();
+      onlineSaveSession(null);
+      onlineCache = { code: '', data: null, seen: false };
+    }
+    if (spil) onlineShowJoin(spil);
+  }
+
+  multiLocalBtn.addEventListener('click', function () { onlineSetMode(false); });
+  multiOnlineBtn.addEventListener('click', function () { onlineSetMode(true); onlineNameInput.focus(); });
+  multiOnlineBox.addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('[data-oset]') : null;
+    if (!b) return;
+    if (b.dataset.oset === 'bonus') onlineSettings.bonus = b.dataset.val === 'on';
+    else onlineSettings[b.dataset.oset] = b.dataset.val;
+    onlinePaintSettingsPicker();
+  });
+  onlineCreateBtn.addEventListener('click', onlineCreateClick);
+  onlineJoinOpen.addEventListener('click', function () { onlineShowJoin(''); });
+  onlineJoinBack.addEventListener('click', function () { onlineSetQuery(''); classShowStart(); });
+  onlineJoinForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var code = classNormCode(onlineJoinCode.value);
+    var name = cleanName(onlineJoinName.value, '');
+    if (!code) { onlineJoinError.hidden = false; onlineJoinError.textContent = 'Skriv koden med 6 tegn, f.eks. AB-CDEF.'; return; }
+    if (!name) { onlineJoinError.hidden = false; onlineJoinError.textContent = 'Skriv dit navn.'; return; }
+    var btn = onlineJoinForm.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    onlineJoin(code, name).then(function (err) {
+      btn.disabled = false;
+      onlineJoinError.hidden = !err;
+      onlineJoinError.textContent = err || '';
+    }, function (ex) {
+      btn.disabled = false;
+      onlineJoinError.hidden = false;
+      onlineJoinError.textContent = onlineErrText(ex);
+    });
+  });
+  onlineStartBtn.addEventListener('click', onlineStartGame);
+  onlineLeaveBtn.addEventListener('click', function () { onlineLeave(); });
+  onlineCopy.addEventListener('click', function () {
+    var url = onlineLink.href || onlineLink.textContent;
+    function done(ok) { onlineCopy.textContent = ok ? 'Kopieret' : 'Kopiér link'; }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(function () { done(true); }, function () { done(false); });
+    } else done(false);
+    window.setTimeout(function () { onlineCopy.textContent = 'Kopiér link'; }, 1600);
+  });
+
   pickTeacher.addEventListener('click', function () {
     pickSolo.setAttribute('aria-pressed', 'false');
     pickMulti.setAttribute('aria-pressed', 'false');
@@ -4470,6 +5310,7 @@ function qrMatrix(text, maskForce) {
   winToTeacherBtn.addEventListener('click', classBackToTeacher);
   window.setInterval(classOnClock, 1000);
   classBoot().catch(function (err) { classNetError(classErrText(err)); });
+  onlineBoot().catch(function (err) { classNetError(onlineErrText(err)); });
 
   updatePreview();
 })();
