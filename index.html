@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
 <title>Funktion Punkt Skyder</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#b84a2a">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23f3ecdf'/%3E%3Cpath d='M6 26h20M8 26V6' stroke='%232c241b' stroke-width='1.6'/%3E%3Cpath d='M8 22l8-8 4 3 6-8' stroke='%23b84a2a' stroke-width='2' fill='none'/%3E%3Ccircle cx='20' cy='17' r='2.4' fill='%232a4f8f'/%3E%3C/svg%3E">
 <style>
   :root {
@@ -307,7 +311,18 @@
   }
   @media (prefers-reduced-motion: reduce) {
     .pscore.bump { animation: none; }
+    .score-row.is-active { animation: none !important; }
   }
+  .score-row.is-active { background: var(--good-bg) !important; box-shadow: inset 0 0 0 2px var(--good) !important; }
+  .score-row.is-active .role { color: var(--good); font-weight: 800; }
+  .score-row.is-gone { opacity: 0.6; }
+  .score-row.is-gone .role { color: #8a2a1a; }
+  @keyframes turnPulse { 0% { box-shadow: inset 0 0 0 4px var(--good); } 100% { box-shadow: inset 0 0 0 2px var(--good); } }
+  .score-row.is-active.pulse { animation: turnPulse 0.6s ease; }
+  .cpu-toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 0.9rem; font-weight: 650; margin-top: 4px; }
+  .fx-settings { display: flex; flex-wrap: wrap; gap: 10px 16px; margin: 10px 2px 0; font-size: 0.92rem; color: var(--muted); }
+  .fx-settings label { display: inline-flex; align-items: center; gap: 6px; }
+  .tag-gone { background: #f6e1dc; color: #8a2a1a; }
 
   .learn-entry { margin: 14px 2px 0; }
   .learn-link {
@@ -641,6 +656,10 @@
       <p class="eyebrow">Lineære funktioner</p>
       <h1>Funktion Punkt Skyder</h1>
       <p class="lede">Skyd et punkt ved at ramme det med en ret linje, f(x) = ax + b.</p>
+      <div class="fx-settings" role="group" aria-label="Indstillinger">
+        <label><input type="checkbox" id="fx-sound"> Lyd</label>
+        <label><input type="checkbox" id="fx-vibe"> Vibration</label>
+      </div>
     </div>
   </header>
 
@@ -747,18 +766,21 @@
             <span class="field-label"><span class="dot" style="background:#1d6a72"></span>Navn</span>
             <input type="text" maxlength="20" value="Spiller 2" autocomplete="off">
           </label>
+          <label class="cpu-toggle"><input type="checkbox" class="cpu-check"> Computer</label>
         </div>
         <div class="name-row" hidden>
           <label class="field">
             <span class="field-label"><span class="dot" style="background:#2a4f8f"></span>Navn</span>
             <input type="text" maxlength="20" value="Spiller 3" autocomplete="off">
           </label>
+          <label class="cpu-toggle"><input type="checkbox" class="cpu-check"> Computer</label>
         </div>
         <div class="name-row" hidden>
           <label class="field">
             <span class="field-label"><span class="dot" style="background:#6a5420"></span>Navn</span>
             <input type="text" maxlength="20" value="Spiller 4" autocomplete="off">
           </label>
+          <label class="cpu-toggle"><input type="checkbox" class="cpu-check"> Computer</label>
         </div>
       </div>
       <label class="field">
@@ -1341,6 +1363,119 @@
 
   function motionMs(ms) { return reduceMotion ? 0 : ms; }
 
+  // Lyd (WebAudio, ingen filer) og vibration. Gemmes i localStorage.
+  var FX_KEY = 'fps-fx';
+  var fx = (function () { try { var v = JSON.parse(localStorage.getItem(FX_KEY) || 'null'); if (v) return { sound: v.sound !== false, vibe: v.vibe === true }; } catch (e) {} return { sound: true, vibe: false }; })();
+  var fxCtx = null;
+  function fxSave() { try { localStorage.setItem(FX_KEY, JSON.stringify(fx)); } catch (e) {} }
+  function fxTone(freq, at, dur, type, vol) {
+    var c = fxCtx;
+    var o = c.createOscillator();
+    var g = c.createGain();
+    o.type = type || 'sine';
+    o.frequency.setValueAtTime(freq, c.currentTime + at);
+    g.gain.setValueAtTime(0.0001, c.currentTime + at);
+    g.gain.exponentialRampToValueAtTime(vol || 0.12, c.currentTime + at + 0.015);
+    g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + at + dur);
+    o.connect(g); g.connect(c.destination);
+    o.start(c.currentTime + at);
+    o.stop(c.currentTime + at + dur + 0.02);
+  }
+  function fxPlay(kind) {
+    if (fx.vibe && navigator.vibrate) {
+      try { navigator.vibrate(kind === 'hit' ? [40, 40, 60] : (kind === 'miss' ? 30 : (kind === 'win' ? [60, 50, 60, 50, 120] : 20))); } catch (e) {}
+    }
+    if (!fx.sound) return;
+    try {
+      if (!fxCtx) { var AC = window.AudioContext || window.webkitAudioContext; if (!AC) return; fxCtx = new AC(); }
+      if (fxCtx.state === 'suspended') fxCtx.resume();
+      if (kind === 'hit') { fxTone(660, 0, 0.12, 'triangle'); fxTone(990, 0.1, 0.18, 'triangle'); }
+      else if (kind === 'miss') { fxTone(220, 0, 0.18, 'sine', 0.08); }
+      else if (kind === 'win') { fxTone(523, 0, 0.14, 'triangle'); fxTone(659, 0.13, 0.14, 'triangle'); fxTone(784, 0.26, 0.28, 'triangle'); }
+      else { fxTone(880, 0, 0.08, 'sine', 0.06); }
+    } catch (e) {}
+  }
+
+  // Computer-spillere i lokal Flere spillere.
+  var aiTimer = null;
+  var aiKey = '';
+  var AI_DELAY = 900;
+  function aiFreePoints() {
+    var spec = boardSpec();
+    var step = pointStep();
+    var xs = latticeValues(spec.four ? -10 : (step === 1 ? 1 : step), spec.max, step);
+    var ys = latticeValues(spec.four ? -10 : 0, spec.max, step);
+    var out = [];
+    xs.forEach(function (x) {
+      if (Math.abs(x) < 1e-9) return;
+      ys.forEach(function (y) { if (canPlacePoint(x, y) && !occupied(x, y)) out.push({ x: x, y: y }); });
+    });
+    return out;
+  }
+  function aiNum(n) { return String(Math.round(n * 10000) / 10000).replace('.', ','); }
+  // Finder en linje gennem (x, y) med a og b i spring på 0,25 fra −10 til 10.
+  function aiLineThrough(x, y) {
+    var opts = [];
+    for (var a4 = -12; a4 <= 12; a4++) {
+      var a = a4 / 4;
+      var b = y - a * x;
+      if (Math.abs(b) <= 10 + 1e-9 && isQuarterStep(b)) opts.push({ a: a, b: Math.round(b * 4) / 4 });
+    }
+    if (!opts.length) opts.push({ a: 0, b: y });
+    var slanted = opts.filter(function (o) { return o.a !== 0; });
+    var pool = (slanted.length && Math.random() < 0.7) ? slanted : opts;
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+  function aiActive() {
+    if (state.online || state.mode !== 'multi') return null;
+    if (state.phase !== 'setup' && state.phase !== 'replace' && state.phase !== 'aim') return null;
+    var i = activeIndex();
+    var p = state.players[i];
+    return (p && p.ai) ? i : null;
+  }
+  function aiSchedule() {
+    var i = aiActive();
+    var key = i == null ? '' : (state.phase + ':' + i + ':' + state.round + ':' + state.shotsThisRound + ':' + shotToken + ':' + state.setupIndex + ':' + state.locked);
+    if (key === aiKey) return;
+    aiKey = key;
+    if (aiTimer) { window.clearTimeout(aiTimer); aiTimer = null; }
+    if (i == null || (state.phase === 'aim' && state.locked)) return;
+    var token = shotToken;
+    aiTimer = window.setTimeout(function () {
+      aiTimer = null;
+      if (token !== shotToken || aiActive() !== i) return;
+      aiAct(i);
+    }, AI_DELAY + Math.floor(Math.random() * 500));
+  }
+  function aiAct(i) {
+    if (state.phase === 'setup' || state.phase === 'replace') {
+      var free = aiFreePoints();
+      if (!free.length) return;
+      var pt = free[Math.floor(Math.random() * free.length)];
+      state.result = state.players[i].name + ' lagde et punkt.';
+      state.resultKind = 'info';
+      commitPlace(pt.x, pt.y);
+      return;
+    }
+    if (state.phase !== 'aim' || state.locked) return;
+    var opps = opponentIndexes();
+    if (!opps.length) return;
+    state.targetIndex = opps[Math.floor(Math.random() * opps.length)];
+    var tp = state.players[state.targetIndex].point;
+    var line = aiLineThrough(tp.x, tp.y);
+    var b = line.b;
+    if (Math.random() >= 0.55) {
+      var off = (Math.random() < 0.5 ? -1 : 1) * (0.25 * (1 + Math.floor(Math.random() * 6)));
+      b = Math.max(-10, Math.min(10, b + off));
+      if (Math.abs(b - line.b) < 0.1) b = line.b + (line.b > 0 ? -0.5 : 0.5);
+    }
+    coefA.value = aiNum(line.a);
+    coefB.value = aiNum(b);
+    state.sheetOpen = true;
+    aiActing = true;
+    try { onSubmit({ preventDefault: function () {} }); } finally { aiActing = false; }
+  }
+
   function invalidate() {
     shotToken += 1;
     state.locked = false;
@@ -1537,7 +1672,13 @@
   }
 
   function roleText(i) {
-    if (i !== activeIndex()) return '';
+    var goneP = state.online && onlinePlayerGone(state.players[i]);
+    if (i !== activeIndex()) return goneP ? 'væk' : '';
+    if (goneP) return 'væk';
+    var mine = state.online ? (state.players[i] && state.players[i].uid === classUid) : !(state.players[i] && state.players[i].ai);
+    if (state.phase === 'aim' && mine) return 'din tur · skyder';
+    if (state.phase === 'aim' && state.players[i] && state.players[i].ai) return 'tænker · skyder';
+    if (mine && (state.phase === 'setup' || state.phase === 'replace')) return 'din tur · lægger punkt';
     if (state.phase === 'setup') return 'lægger punkt';
     if (state.phase === 'replace') return 'lægger nyt punkt';
     if (state.phase === 'aim') return 'skyder';
@@ -2008,7 +2149,7 @@
     for (var i = 0; i < state.players.length; i++) {
       var p = state.players[i];
       var row = document.createElement('div');
-      row.className = 'score-row' + (i === activeIndex() ? ' is-active' : '');
+      row.className = 'score-row' + (i === activeIndex() && state.phase !== 'win' ? ' is-active' : '') + (state.online && onlinePlayerGone(p) ? ' is-gone' : '');
       row.style.setProperty('--p', p.color);
       row.dataset.name = p.name;
       row.dataset.score = String(p.score);
@@ -2201,6 +2342,18 @@
       canvas.setAttribute('aria-label', boardSpec().four ? 'Koordinatsystem fra −10 til 10.' : 'Koordinatsystem fra 0 til 10.');
     }
     onlineMaybePush();
+    aiSchedule();
+    fxTurnCheck();
+  }
+
+  var fxLastTurnKey = '';
+  function fxTurnCheck() {
+    if (!state.online || state.phase === 'win' || state.phase === 'start') { fxLastTurnKey = ''; return; }
+    var me = onlineMyIndex();
+    var mine = me >= 0 && activeIndex() === me;
+    var key = mine ? (state.phase + ':' + state.round + ':' + state.shotsThisRound + ':' + state.setupIndex) : '';
+    if (mine && key !== fxLastTurnKey) fxPlay('turn');
+    fxLastTurnKey = key;
   }
 
   function showGame() {
@@ -2307,9 +2460,19 @@
     state.teacherPlaying = false;
     state.mode = 'multi';
     state.players = [];
+    var cpuN = 0;
     for (var i = 0; i < state.playerCount; i++) {
       var input = nameRows[i].querySelector('input');
-      state.players.push(freshPlayer(cleanName(input.value, 'Spiller ' + (i + 1)), COLORS[i]));
+      var cpu = nameRows[i].querySelector('.cpu-check');
+      var pl;
+      if (cpu && cpu.checked) {
+        cpuN += 1;
+        pl = freshPlayer('Computer ' + cpuN, COLORS[i]);
+        pl.ai = true;
+      } else {
+        pl = freshPlayer(cleanName(input.value, 'Spiller ' + (i + 1)), COLORS[i]);
+      }
+      state.players.push(pl);
     }
     resetCommon();
     state.rounds = clampRounds(multiRoundsInput.value);
@@ -2326,11 +2489,15 @@
     state.classroom = false;
     state.teacherPlaying = false;
     var mode = state.mode;
+    var keepRounds = state.rounds;
     var players = state.players.map(function (p) {
-      return freshPlayer(p.name, p.color);
+      var f = freshPlayer(p.name, p.color);
+      if (p.ai) f.ai = true;
+      return f;
     });
     state.players = players;
     resetCommon();
+    state.rounds = keepRounds;
     if (mode === 'solo') {
       state.mode = 'solo';
       placeComputerPoint();
@@ -2395,6 +2562,7 @@
   }
 
   function endGame(index, tie) {
+    fxPlay('win');
     state.phase = 'win';
     state.winner = index;
     state.tie = tie || null;
@@ -2466,6 +2634,7 @@
         state.result = soloHit.text;
         if (Math.abs(y - (a * x + b)) > 1e-4) state.result += ' Inden for margen på 0,02.';
         state.resultKind = 'good';
+        fxPlay('hit');
         var timedRoom = (state.classroom || state.teacherPlaying) && classIsTimedRoom(currentRoom());
         state.soloHits += 1;
         var lastRound = !timedRoom && state.soloHits + state.soloMisses >= state.rounds;
@@ -2500,6 +2669,7 @@
         }, motionMs(CELEBRATE_MS));
       } else {
         classNoteShot(false);
+        fxPlay('miss');
         state.soloMisses += 1;
         var missTimed = (state.classroom || state.teacherPlaying) && classIsTimedRoom(currentRoom());
         if (!missTimed && state.soloHits + state.soloMisses >= state.rounds) {
@@ -2528,6 +2698,7 @@
       var targetPlayer = state.players[owner];
       targetPlayer.point = null;
       state.flash = { x: x, y: y, t: performance.now() };
+      if (!state.online) fxPlay('hit');
       state.phase = 'replace';
       state.replaceIndex = owner;
       state.locked = true;
@@ -2546,6 +2717,7 @@
 
     state.result = missText(a, b, x, y);
     state.resultKind = 'bad';
+    if (!state.online) fxPlay('miss');
     renderUI();
     draw();
     completeShot();
@@ -3142,16 +3314,16 @@ function qrMatrix(text, maskForce) {
 }
 
 
-  // Klasse-rum i Firestore-samlingen funktionPunktSkyderRooms (projekt sammenskudsgilde).
-  // Den offentlige web-nøgle er den samme som i sammenskudsgilde. Adgang styres af firestore.rules:
+  // Klasse-rum i Firestore-samlingen funktionPunktSkyderRooms (eget projekt funktion-punkt-skyder).
+  // Adgang styres af firestore.rules i funktion-punkt-skyder-firebase:
   // kun denne samling, ingen listning, og kun læreren kan ændre rummet.
   var FPS_FIREBASE = {
-    apiKey: 'AIzaSyB7KrVosbXqzcmfmjPDfQS7R6L0PO1rH8U',
-    authDomain: 'sammenskudsgilde-848aa.firebaseapp.com',
-    projectId: 'sammenskudsgilde-848aa',
-    storageBucket: 'sammenskudsgilde-848aa.firebasestorage.app',
-    messagingSenderId: '425323133361',
-    appId: '1:425323133361:web:f2b4d9f0552d42f2752590'
+    apiKey: 'AIzaSyA8B_e7MHNUHVj0OEQKmbv6AdQLDsIsVn4',
+    authDomain: 'funktion-punkt-skyder.firebaseapp.com',
+    projectId: 'funktion-punkt-skyder',
+    storageBucket: 'funktion-punkt-skyder.firebasestorage.app',
+    messagingSenderId: '438802628824',
+    appId: '1:438802628824:web:b32dda5c6cacb2c7c897ad'
   };
   var FPS_COLLECTION = 'funktionPunktSkyderRooms';
   var CLASS_SESS = 'fps-klasse-session';
@@ -3437,6 +3609,23 @@ function qrMatrix(text, maskForce) {
     if (!classIsTimedRoom(room) || classTimerExpired(room)) return;
     teacherTimerStatus.textContent = 'Tid tilbage: ' + classFormatRemain(classEndsAt(room) - Date.now());
   }
+  var classBeatAt = 0;
+  var classTeacherGoneAt = 0;
+  function classBeatTick(force) {
+    var sess = classSession();
+    if (!sess || !classFs || !classDb) return;
+    var now = Date.now();
+    if (sess.role === 'teacher' && !teacherScreen.hidden && now - classTeacherGoneAt > 10000) {
+      classTeacherGoneAt = now;
+      classRenderTeacher(true);
+    }
+    if (!force && now - classBeatAt < 20000) return;
+    var id = sess.role === 'teacher' ? 'teacher' : sess.id;
+    var stu = classReadStudent(sess.code, id);
+    if (!stu || stu.ownerUid !== classUid) return;
+    classBeatAt = now;
+    classWriteStudentRawFor(sess.code, stu);
+  }
   function classOnClock() {
     var sess = classSession();
     if (!sess) return;
@@ -3500,12 +3689,13 @@ function qrMatrix(text, maskForce) {
     return classAuthReady;
   }
   function classSession() {
-    try { return JSON.parse(sessionStorage.getItem(CLASS_SESS) || 'null'); }
+    try { return JSON.parse(localStorage.getItem(CLASS_SESS) || sessionStorage.getItem(CLASS_SESS) || 'null'); }
     catch (e2) { return null; }
   }
   function classSaveSession(s) {
-    if (!s) sessionStorage.removeItem(CLASS_SESS);
-    else sessionStorage.setItem(CLASS_SESS, JSON.stringify(s));
+    try { sessionStorage.removeItem(CLASS_SESS); } catch (e) {}
+    if (!s) localStorage.removeItem(CLASS_SESS);
+    else localStorage.setItem(CLASS_SESS, JSON.stringify(s));
   }
   function classIsStudent() {
     var s = classSession();
@@ -3860,7 +4050,8 @@ function qrMatrix(text, maskForce) {
       wrong: classNum(stu.wrong),
       group: group,
       ownerUid: classUid,
-      updated: Date.now()
+      updated: Date.now(),
+      lastSeen: Date.now()
     };
   }
   function classWriteStudentRawFor(code, stu) {
@@ -3906,7 +4097,12 @@ function qrMatrix(text, maskForce) {
     var r = Math.round((correct / wrong) * 10) / 10;
     return r.toFixed(1).replace('.', ',');
   }
+  function classStudentGone(st) {
+    var t = Number(st && (st.lastSeen || st.updated));
+    return Number.isFinite(t) && t > 0 && Date.now() - t > 60000;
+  }
   function classWhereInfo(student, room) {
+    if (classStudentGone(student)) return { text: 'Væk', cls: 'tag-gone' };
     if (student.where === 'learn') return { text: 'Kigger på linjen', cls: 'tag-learn' };
     if (student.where === 'playing') {
       if (room && room.mode === 'grupper') {
@@ -4397,11 +4593,20 @@ function qrMatrix(text, maskForce) {
     var snap = await classFs.getDoc(classFs.doc(classDb, FPS_COLLECTION, code));
     if (!snap.exists()) return 'Der er ikke noget rum med den kode. Tjek koden, eller åbn linket fra læreren.';
     var room = classRoomFromData(snap.id, snap.data());
-    var id = classRand(8);
-    classSaveSession({ role: 'student', code: code, id: id, name: name, lastCmd: room.cmd ? room.cmd.id : 0 });
     await classWatch(code);
     if (!classReadRoom(code)) return 'Rummet kunne ikke åbnes. Prøv igen.';
-    await classWriteStudentRawFor(code, {
+    // Genforbind: samme enhed, eller samme navn hvor den gamle plads er væk.
+    var low = name.toLowerCase();
+    var old = null;
+    classListStudents(code).forEach(function (st) {
+      if (old || st.id === 'teacher' || String(st.name || '').toLowerCase() !== low) return;
+      if (st.ownerUid === classUid || classStudentGone(st)) old = st;
+    });
+    var id = old ? old.id : classRand(8);
+    classSaveSession({ role: 'student', code: code, id: id, name: name, lastCmd: room.cmd ? room.cmd.id : 0 });
+    await classWriteStudentRawFor(code, old ? {
+      id: id, name: old.name, where: 'menu', points: old.points, tasks: old.tasks, correct: old.correct, wrong: old.wrong, group: old.group
+    } : {
       id: id,
       name: name,
       where: 'menu',
@@ -4605,12 +4810,13 @@ function qrMatrix(text, maskForce) {
 
   function onlineMatchData() { return onlineCache ? onlineCache.data : null; }
   function onlineSession() {
-    try { return JSON.parse(sessionStorage.getItem(ONLINE_SESS) || 'null'); }
+    try { return JSON.parse(localStorage.getItem(ONLINE_SESS) || sessionStorage.getItem(ONLINE_SESS) || 'null'); }
     catch (e) { return null; }
   }
   function onlineSaveSession(s) {
-    if (!s) sessionStorage.removeItem(ONLINE_SESS);
-    else sessionStorage.setItem(ONLINE_SESS, JSON.stringify(s));
+    try { sessionStorage.removeItem(ONLINE_SESS); } catch (e) {}
+    if (!s) localStorage.removeItem(ONLINE_SESS);
+    else localStorage.setItem(ONLINE_SESS, JSON.stringify(s));
   }
   function onlineIsHost() {
     var m = onlineMatchData();
@@ -4622,8 +4828,9 @@ function qrMatrix(text, maskForce) {
     }
     return -1;
   }
+  var aiActing = false;
   function onlineCanAct() {
-    if (!state.online) return true;
+    if (!state.online) return aiActing || aiActive() == null;
     var me = onlineMyIndex();
     return me >= 0 && activeIndex() === me;
   }
@@ -4652,11 +4859,53 @@ function qrMatrix(text, maskForce) {
       rounds: clampRounds(d.rounds),
       uids: uids,
       members: members,
+      seen: (d.seen && typeof d.seen === 'object') ? d.seen : {},
       game: typeof d.game === 'string' ? d.game : null,
       rev: typeof d.rev === 'number' ? d.rev : 0
     };
   }
   function onlineRef(code) { return classFs.doc(classDb, MATCH_COLLECTION, code); }
+  var GONE_MS = 60000;
+  var BEAT_MS = 20000;
+  function onlineUidGone(m, uid) {
+    if (!m || !uid || uid === classUid) return false;
+    var t = Number(m.seen && m.seen[uid]);
+    if (!Number.isFinite(t) || t <= 0) return false;
+    return Date.now() - t > GONE_MS;
+  }
+  function onlinePlayerGone(p) { return !!(p && state.online && onlineUidGone(onlineMatchData(), p.uid)); }
+  var onlineBeatAt = 0;
+  var onlineGoneSnap = '';
+  function onlineBeat(force) {
+    var sess = onlineSession();
+    var m = onlineMatchData();
+    if (!sess || !m || !classFs || !classUid || m.uids.indexOf(classUid) < 0) return;
+    var now = Date.now();
+    if (!force && now - onlineBeatAt < BEAT_MS) return;
+    onlineBeatAt = now;
+    var upd = {};
+    upd['seen.' + classUid] = now;
+    classFs.updateDoc(onlineRef(sess.code), upd).catch(function () {});
+  }
+  function onlineTickGone() {
+    if (!onlineSession()) return;
+    onlineBeat(false);
+    var m = onlineMatchData();
+    if (!m) return;
+    var snap = m.uids.map(function (u) { return onlineUidGone(m, u) ? '1' : '0'; }).join('');
+    if (snap !== onlineGoneSnap) {
+      onlineGoneSnap = snap;
+      if (state.online && !gameScreen.hidden) renderUI();
+      else if (!onlineScreen.hidden) onlineRenderLobby();
+    }
+    // Værten springer automatisk en væk-spillers tur over.
+    if (state.online && onlineIsHost() && state.phase !== 'win' && !gameScreen.hidden) {
+      var ap = state.players[activeIndex()];
+      if (ap && ap.uid && ap.uid !== classUid && onlineUidGone(m, ap.uid) && !state.locked) {
+        onlineSkip(ap.name + ' er væk, så turen blev sprunget over.');
+      }
+    }
+  }
   function onlineMembersJson(list) {
     return JSON.stringify(list.map(function (m) { return { u: m.u, n: m.n }; }));
   }
@@ -4719,6 +4968,7 @@ function qrMatrix(text, maskForce) {
     classNetError(msg || '');
   }
   function onlineEnter(m) {
+    onlineBeat(true);
     if (m.status === 'playing' && m.game) onlineApplyGame(m, true);
     else onlineShowLobby();
   }
@@ -4849,7 +5099,11 @@ function qrMatrix(text, maskForce) {
       draw();
       if (newHit) animateFlash();
     }
+    if (wasOn && newHit) fxPlay('hit');
+    else if (wasOn && state.lastShot && !state.lastShot.hit && g.lastShot && JSON.stringify(g.lastShot) !== fxLastShotJson) fxPlay('miss');
+    fxLastShotJson = JSON.stringify(g.lastShot || null);
   }
+  var fxLastShotJson = '';
   function onlinePaintTools() {
     if (!onlineTools) return;
     var show = state.online && onlineIsHost() && state.phase !== 'win' && !gameScreen.hidden;
@@ -4860,14 +5114,14 @@ function qrMatrix(text, maskForce) {
     skip.type = 'button';
     skip.className = 'text-btn';
     skip.textContent = 'Spring tur over';
-    skip.addEventListener('click', onlineSkip);
+    skip.addEventListener('click', function () { onlineSkip(''); });
     onlineTools.appendChild(skip);
     state.players.forEach(function (p) {
       if (!p.uid || p.uid === classUid) return;
       var b = document.createElement('button');
       b.type = 'button';
       b.className = 'text-btn';
-      b.textContent = 'Fjern ' + p.name;
+      b.textContent = 'Fjern ' + p.name + (onlinePlayerGone(p) ? ' (væk)' : '');
       b.addEventListener('click', function () {
         if (!window.confirm('Fjern ' + p.name + ' fra spillet?')) return;
         onlineRemoveMember(p.uid).catch(function (err) { classNetError(onlineErrText(err)); });
@@ -4887,14 +5141,15 @@ function qrMatrix(text, maskForce) {
     });
     return out;
   }
-  function onlineSkip() {
+  function onlineSkip(note) {
+    if (typeof note !== 'string') note = '';
     if (!state.online || !onlineIsHost() || state.phase === 'win') return;
     invalidate();
     var who = state.players[activeIndex()];
     onlineActed = true;
     if (state.phase === 'aim') {
       state.lastShot = null;
-      state.result = (who ? who.name : 'Spilleren') + ' sprang turen over.';
+      state.result = note || ((who ? who.name : 'Spilleren') + ' sprang turen over.');
       state.resultKind = 'info';
       completeShot();
       return;
@@ -4903,7 +5158,7 @@ function qrMatrix(text, maskForce) {
       var free = onlineFreePoints();
       if (!free.length) return;
       var pt = free[Math.floor(Math.random() * free.length)];
-      state.result = (who ? who.name : 'Spilleren') + ' sprang over. Punktet blev lagt tilfældigt.';
+      state.result = (note ? note + ' ' : ((who ? who.name : 'Spilleren') + ' sprang over. ')) + 'Punktet blev lagt tilfældigt.';
       state.resultKind = 'info';
       commitPlace(pt.x, pt.y);
     }
@@ -5061,7 +5316,7 @@ function qrMatrix(text, maskForce) {
       dot.style.background = COLORS[i % COLORS.length];
       li.appendChild(dot);
       var t = document.createElement('span');
-      t.textContent = mem.n + (mem.u === m.hostUid ? ' (vært)' : '') + (mem.u === classUid ? ' · dig' : '');
+      t.textContent = mem.n + (mem.u === m.hostUid ? ' (vært)' : '') + (mem.u === classUid ? ' · dig' : '') + (onlineUidGone(m, mem.u) ? ' · væk' : '');
       li.appendChild(t);
       if (host && mem.u !== classUid) {
         var b = document.createElement('button');
@@ -5136,12 +5391,14 @@ function qrMatrix(text, maskForce) {
         members: onlineMembersJson([{ u: classUid, n: name }]),
         game: null,
         rev: 0,
+        seen: (function () { var o = {}; o[classUid] = Date.now(); return o; })(),
         updated: Date.now()
       });
       onlineSaveSession({ code: code, name: name });
       onlineSetQuery(code);
       await onlineWatch(code);
       onlineNote = '';
+      onlineBeatAt = Date.now();
       onlineShowLobby();
       return;
     }
@@ -5155,11 +5412,39 @@ function qrMatrix(text, maskForce) {
       if (!snap.exists()) return 'Spillet findes ikke. Tjek koden.';
       var m = onlineParse(snap.id, snap.data());
       if (m.uids.indexOf(classUid) >= 0) return '';
-      if (m.status !== 'lobby') return 'Spillet er allerede i gang.';
+      var low = name.toLowerCase();
+      var stale = null;
+      m.members.forEach(function (mem) {
+        if (!stale && mem.u !== m.hostUid && mem.n.toLowerCase() === low && onlineUidGone(m, mem.u)) stale = mem;
+      });
+      if (stale) {
+        var oldU = stale.u;
+        var upd = {
+          playerUids: m.uids.map(function (u) { return u === oldU ? classUid : u; }),
+          members: onlineMembersJson(m.members.map(function (x) { return x.u === oldU ? { u: classUid, n: x.n } : x; })),
+          updated: Date.now()
+        };
+        var seen = {};
+        Object.keys(m.seen || {}).forEach(function (k) { if (k !== oldU) seen[k] = m.seen[k]; });
+        seen[classUid] = Date.now();
+        upd.seen = seen;
+        if (m.game) {
+          try {
+            var gg = JSON.parse(m.game);
+            (gg.players || []).forEach(function (pp) { if (pp.u === oldU) pp.u = classUid; });
+            upd.game = JSON.stringify(gg);
+            upd.rev = m.rev + 1;
+          } catch (e) {}
+        }
+        tx.update(ref, upd);
+        return '';
+      }
+      if (m.status !== 'lobby') return 'Spillet er allerede i gang. Hvis du var med, så skriv det samme navn, når din gamle plads står som væk.';
       if (m.uids.length >= 4) return 'Spillet er fuldt. Højst 4 spillere.';
       tx.update(ref, {
         playerUids: m.uids.concat([classUid]),
         members: onlineMembersJson(m.members.concat([{ u: classUid, n: name }])),
+        ['seen.' + classUid]: Date.now(),
         updated: Date.now()
       });
       return '';
@@ -5392,6 +5677,20 @@ function qrMatrix(text, maskForce) {
   toTeacherBtn.addEventListener('click', classBackToTeacher);
   winToTeacherBtn.addEventListener('click', classBackToTeacher);
   window.setInterval(classOnClock, 1000);
+  window.setInterval(function () { try { onlineTickGone(); } catch (e) {} try { classBeatTick(); } catch (e) {} }, 5000);
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') { try { onlineBeat(true); } catch (e) {} try { classBeatTick(true); } catch (e) {} } });
+  (function () {
+    var fs = document.getElementById('fx-sound');
+    var fv = document.getElementById('fx-vibe');
+    fs.checked = fx.sound;
+    fv.checked = fx.vibe;
+    fv.parentNode.hidden = !navigator.vibrate;
+    fs.addEventListener('change', function () { fx.sound = fs.checked; fxSave(); if (fx.sound) fxPlay('turn'); });
+    fv.addEventListener('change', function () { fx.vibe = fv.checked; fxSave(); if (fx.vibe) fxPlay('turn'); });
+  })();
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+    window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+  }
   classBoot().catch(function (err) { classNetError(classErrText(err)); });
   onlineBoot().catch(function (err) { classNetError(onlineErrText(err)); });
 
