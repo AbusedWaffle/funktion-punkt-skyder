@@ -676,6 +676,10 @@
         <span class="field-label">Dit navn</span>
         <input id="solo-name" type="text" maxlength="20" value="Spiller 1" autocomplete="off">
       </label>
+      <label class="field">
+        <span class="field-label">Antal runder</span>
+        <input id="solo-rounds" type="number" min="1" max="50" step="1" value="10" inputmode="numeric">
+      </label>
       <button class="btn" type="submit">Start spil</button>
     </form>
 
@@ -713,6 +717,10 @@
             <button type="button" data-oset="bonus" data-val="on" aria-pressed="false">Til</button>
           </div>
         </div>
+        <label class="field">
+          <span class="field-label">Antal runder</span>
+          <input id="online-rounds" type="number" min="1" max="50" step="1" value="10" inputmode="numeric">
+        </label>
         <p class="fine">Du opretter et spil med kode, link og QR. De andre går med på deres egen telefon. 2 til 4 spillere.</p>
         <p id="online-create-error" class="error" role="alert" hidden></p>
         <button class="btn" type="button" id="online-create">Opret spil</button>
@@ -753,6 +761,10 @@
           </label>
         </div>
       </div>
+      <label class="field">
+        <span class="field-label">Antal runder</span>
+        <input id="multi-rounds" type="number" min="1" max="50" step="1" value="10" inputmode="numeric">
+      </label>
       <button class="btn" type="submit">Start spil</button>
       </div>
     </form>
@@ -763,17 +775,17 @@
         <p>Du skyder et punkt med en lineær funktion <strong>f(x) = ax + b</strong>. Skuddet rammer, hvis punktets y-værdi passer med a·x + b, med en absolut margen på 0,02. Det er midten af mærket, der tæller.</p>
         <p>Der går uendeligt mange rette linjer gennem ét punkt. Spillet siger aldrig, hvilken a eller b der er den rigtige.</p>
         <p>Efter hvert skud får du straks at vide, om det ramte. Rammer du forbi, siger spillet hvor mange enheder linjen er over eller under punktet.</p>
-        <p>Først til 10 point vinder.</p>
-        <p><strong>Én spiller.</strong> Computeren lægger et punkt. Uden for et rum har det hele koordinater, med x fra 1 til 10 og y fra 0 til 10. Rammer du, får du 1 point og et nyt punkt. Rammer du forbi, tegnes linjen, og du må prøve igen på samme punkt.</p>
+        <p>Spillet varer det antal runder, I vælger (1 til 50, standard 10). Den med flest point til sidst vinder.</p>
+        <p><strong>Én spiller.</strong> Computeren lægger et punkt. Uden for et rum har det hele koordinater, med x fra 1 til 10 og y fra 0 til 10. Hvert skud er én runde. Rammer du, får du 1 point og et nyt punkt. Rammer du forbi, tegnes linjen, og du skyder igen på samme punkt i næste runde. Efter sidste runde ser du dine point, og hvor mange skud der ramte og gik forbi.</p>
         <p><strong>Flere spillere.</strong> I lægger på skift hver jeres punkt på et ledigt gitterpunkt ved samme skærm. På din tur skyder du ét af modstandernes punkter.</p>
         <ul>
           <li>Ramt: du får 1 point, og den ramte lægger straks et nyt punkt. Derefter er det næste spillers tur.</li>
           <li>Forbi: ingen point, og turen går videre. Kun det seneste skud bliver stående.</li>
-          <li>En runde er ét skud fra hver spiller. Når nogen når 10, skyder de andre runden færdig. Bagefter vinder den, der alene har flest point, hvis det er mindst 10. Står flere lige øverst, spilles en runde mere.</li>
+          <li>En runde er ét skud fra hver spiller. Efter det valgte antal runder slutter spillet, og den med flest point vinder. Står flere lige øverst, er det uafgjort mellem dem.</li>
         </ul>
-        <p><strong>Hver sin telefon.</strong> Vælg Flere spillere og Hver sin telefon. Én opretter et spil og vælger sværhedsgrad, koordinatsystem og bonuspoint. De andre går med via kode, link eller QR og skriver deres navn. Værten trykker Start spillet, når alle er med. Reglerne er de samme som på samme skærm, men hver telefon kan kun lægge punkter og skyde, når det er dens tur. De andre ser brættet live. Værten kan springe en tur over eller fjerne en spiller, der er faldet fra. Forlader værten spillet, lukkes det for alle.</p>
+        <p><strong>Hver sin telefon.</strong> Vælg Flere spillere og Hver sin telefon. Én opretter et spil og vælger sværhedsgrad, koordinatsystem, bonuspoint og antal runder. De andre går med via kode, link eller QR og skriver deres navn. Værten trykker Start spillet, når alle er med. Reglerne er de samme som på samme skærm, men hver telefon kan kun lægge punkter og skyde, når det er dens tur. De andre ser brættet live. Værten kan springe en tur over eller fjerne en spiller, der er faldet fra. Forlader værten spillet, lukkes det for alle.</p>
         <p>Punkter på y-aksen (x = 0) bruges ikke, fordi enhver linje med den rigtige b ville ramme dem.</p>
-        <p><strong>Lærer og elever.</strong> Læreren opretter et rum. Eleverne går med med kode eller link og et navn. Læreren vælger Hver for sig eller Grupper. I grupper navngiver læreren grupperne, og hver elev vælger en af dem. Eleverne spiller stadig alene mod computeren. Pointene lægges sammen i gruppen. Læreren kan sætte en tidsgrænse i hele minutter. Når tiden løber ud, stopper spillet. Uden grupper vinder eleven med flest point. I grupper vinder gruppen med flest point tilsammen. Står flere lige, er det uafgjort. Uden tidsgrænse gælder først til 10. Læreren kan lukke for nye spil, sende alle til menuen og selv hoppe ind i spillet. Under spillet er der altid en knap tilbage til lærermenuen. Læreren vælger sværhedsgrad, koordinatsystem og bonuspoint for rummet. Hele tal: punktet ligger på hele koordinater. Decimaltal: punktet ligger på koordinater i spring på 0,25. 1 kvadrant er akser fra 0 til 10. 4 kvadranter lægger akserne gennem midten, med x og y fra −10 til 10, og stadig ingen punkter på y-aksen. I et rum er a og b fra −10 til 10, i spring på 0,25, samme for begge sværhedsgrader. Med bonuspoint giver et ramt skud 5 point, hvis linjen ikke er vandret. En vandret linje giver 1 point. Uden for et rum er brættet 1 kvadrant, og a og b kan være frie tal.</p>
+        <p><strong>Lærer og elever.</strong> Læreren opretter et rum. Eleverne går med med kode eller link og et navn. Læreren vælger Hver for sig eller Grupper. I grupper navngiver læreren grupperne, og hver elev vælger en af dem. Eleverne spiller stadig alene mod computeren. Pointene lægges sammen i gruppen. Læreren kan sætte en tidsgrænse i hele minutter. Når tiden løber ud, stopper spillet. Uden grupper vinder eleven med flest point. I grupper vinder gruppen med flest point tilsammen. Står flere lige, er det uafgjort. Uden tidsgrænse spiller hver elev det antal runder, læreren har valgt. Ét skud er én runde. Læreren kan lukke for nye spil, sende alle til menuen og selv hoppe ind i spillet. Under spillet er der altid en knap tilbage til lærermenuen. Læreren vælger sværhedsgrad, koordinatsystem og bonuspoint for rummet. Hele tal: punktet ligger på hele koordinater. Decimaltal: punktet ligger på koordinater i spring på 0,25. 1 kvadrant er akser fra 0 til 10. 4 kvadranter lægger akserne gennem midten, med x og y fra −10 til 10, og stadig ingen punkter på y-aksen. I et rum er a og b fra −10 til 10, i spring på 0,25, samme for begge sværhedsgrader. Med bonuspoint giver et ramt skud 5 point, hvis linjen ikke er vandret. En vandret linje giver 1 point. Uden for et rum er brættet 1 kvadrant, og a og b kan være frie tal.</p>
       </div>
     </details>
   </section>
@@ -893,6 +905,15 @@
           </div>
           <div class="fine" id="teacher-bonus-hint">Hvert ramt skud giver 1 point.</div>
         </div>
+        <div class="room-card mode">
+          <div class="fine">Antal runder</div>
+          <strong id="teacher-rounds-label">10</strong>
+          <label class="field">
+            <span class="field-label">Antal runder</span>
+            <input id="teacher-rounds" type="number" min="1" max="50" step="1" value="10" inputmode="numeric">
+          </label>
+          <div class="fine">Bruges uden tidsgrænse. Ét skud er én runde for hver elev.</div>
+        </div>
         <div class="room-card">
           <button type="button" class="btn" id="teacher-start">Start spillet</button>
           <div class="fine" id="teacher-ready">Ingen elever endnu</div>
@@ -998,7 +1019,7 @@
         <details class="rules-pop">
           <summary>Regler</summary>
           <div class="rules-card">
-            <p>Rammer hvis |y − (ax + b)| ≤ 0,02. Ingen facit. Énspiller: prøv igen på samme punkt. Flerspiller: turen går videre ved forbi, og den ramte lægger et nyt punkt. Vinder kåres først efter runden, og kun hvis én spiller alene har flest point og mindst 10. I et rum med hele tal ligger punktet på hele koordinater. Med decimaltal ligger det i spring på 0,25. Med bonuspoint giver et ramt skud 5 point, hvis linjen ikke er vandret. En vandret linje giver 1.</p>
+            <p>Rammer hvis |y − (ax + b)| ≤ 0,02. Ingen facit. Énspiller: ét skud er én runde, og ved forbi skyder du igen på samme punkt. Flerspiller: turen går videre ved forbi, og den ramte lægger et nyt punkt. En runde er ét skud fra hver. Efter det valgte antal runder vinder den med flest point. Lige point er uafgjort. I et rum med hele tal ligger punktet på hele koordinater. Med decimaltal ligger det i spring på 0,25. Med bonuspoint giver et ramt skud 5 point, hvis linjen ikke er vandret. En vandret linje giver 1.</p>
           </div>
         </details>
         <button type="button" class="teacher-back" id="to-teacher" hidden>Til lærermenuen</button>
@@ -1057,7 +1078,7 @@
 (function () {
   'use strict';
 
-  // isHit, canPlacePoint og winnerAfterRound er duplikeret i hit-test.mjs.
+  // isHit, canPlacePoint og leadersAfterGame er duplikeret i hit-test.mjs.
   var TOLERANCE = 0.02;
 
   function isHit(x, y, a, b, tolerance) {
@@ -1108,22 +1129,22 @@
     return true;
   }
 
-  function winnerAfterRound(scores, goal) {
-    var limit = goal == null ? 10 : goal;
+  function clampRounds(v) {
+    if (v == null || String(v).trim() === "") return 10;
+    var n = Number(v);
+    if (!Number.isFinite(n)) return 10;
+    n = Math.round(n);
+    return Math.min(50, Math.max(1, n));
+  }
+
+  // Leaders after the final round. Returns the indexes with the top score.
+  function leadersAfterGame(scores) {
     var max = -Infinity;
     var i;
-    for (i = 0; i < scores.length; i++) {
-      if (scores[i] > max) max = scores[i];
-    }
-    if (!(max >= limit)) return -1;
-    var leader = -1;
-    for (i = 0; i < scores.length; i++) {
-      if (scores[i] === max) {
-        if (leader !== -1) return -1;
-        leader = i;
-      }
-    }
-    return leader;
+    for (i = 0; i < scores.length; i++) if (scores[i] > max) max = scores[i];
+    var out = [];
+    for (i = 0; i < scores.length; i++) if (scores[i] === max) out.push(i);
+    return out;
   }
 
   function parseNumber(raw) {
@@ -1214,6 +1235,9 @@
   var pickMulti = document.getElementById('pick-multi');
   var soloForm = document.getElementById('solo-form');
   var multiForm = document.getElementById('multi-form');
+  var soloRoundsInput = document.getElementById('solo-rounds');
+  var multiRoundsInput = document.getElementById('multi-rounds');
+  var onlineRoundsInput = document.getElementById('online-rounds');
   var soloNameInput = document.getElementById('solo-name');
   var nameRows = multiForm.querySelectorAll('.name-row');
   var countButtons = multiForm.querySelectorAll('[data-count]');
@@ -1282,6 +1306,11 @@
     setupIndex: 0,
     replaceIndex: null,
     shotsThisRound: 0,
+    rounds: 10,
+    round: 0,
+    soloHits: 0,
+    soloMisses: 0,
+    tie: null,
     targetIndex: null,
     soloPoint: null,
     lastShot: null,
@@ -1498,12 +1527,13 @@
         if (classTimerExpired(timedRoom) || (state.phase === 'win' && state.timerWin)) return 'Tiden er gået';
         return 'Tid tilbage: ' + classFormatRemain(classEndsAt(timedRoom) - Date.now());
       }
-      return 'Først til 10 point';
+      if (state.phase === 'win') return 'Spillet er slut · ' + state.rounds + ' runder';
+      return 'Runde ' + Math.min(state.rounds, state.soloHits + state.soloMisses + 1) + ' af ' + state.rounds;
     }
     if (state.phase === 'setup') return 'Opsætning · punkt ' + (state.setupIndex + 1) + ' af ' + state.players.length;
     if (state.phase === 'replace') return 'Læg et nyt punkt';
     if (state.phase === 'win') return 'Spillet er slut';
-    return 'Skud ' + (state.shotsThisRound + 1) + ' af ' + state.players.length + ' i denne runde';
+    return 'Runde ' + Math.min(state.rounds, state.round + 1) + ' af ' + state.rounds + ' · skud ' + (state.shotsThisRound + 1) + ' af ' + state.players.length;
   }
 
   function roleText(i) {
@@ -2005,13 +2035,10 @@
       var num = document.createElement('span');
       num.textContent = String(p.score);
       scoreEl.appendChild(num);
-      var timedScore = (state.classroom || state.teacherPlaying) && classIsTimedRoom(currentRoom());
-      if (!timedScore) {
-        var of = document.createElement('span');
-        of.className = 'of';
-        of.textContent = '/10';
-        scoreEl.appendChild(of);
-      }
+      var of = document.createElement('span');
+      of.className = 'of';
+      of.textContent = ' point';
+      scoreEl.appendChild(of);
       row.appendChild(sw);
       row.appendChild(who);
       row.appendChild(scoreEl);
@@ -2084,10 +2111,21 @@
       }
       return;
     }
-    var w = state.players[state.winner];
-    winTitle.textContent = 'Tillykke, ' + w.name + '!';
-    if (state.mode === 'solo') winText.textContent = 'Du nåede 10 point.';
-    else winText.textContent = w.name + ' vinder med ' + w.score + ' point.';
+    if (state.mode === 'solo') {
+      var sp = state.players[0];
+      winTitle.textContent = 'Godt spillet, ' + sp.name + '!';
+      winText.textContent = 'Du fik ' + sp.score + ' point. ' + state.soloHits + ' ramt og ' + state.soloMisses + ' forbi ud af ' + state.rounds + ' skud.';
+    } else if (state.tie && state.tie.length > 1) {
+      var names = state.tie.map(function (k) { return state.players[k] ? state.players[k].name : '?'; });
+      var last = names.pop();
+      var tp = state.players[state.tie[0]];
+      winTitle.textContent = 'Uafgjort!';
+      winText.textContent = 'Uafgjort mellem ' + names.join(', ') + ' og ' + last + ' med ' + (tp ? tp.score : 0) + ' point efter ' + state.rounds + ' runder.';
+    } else {
+      var w = state.players[state.winner] || state.players[0];
+      winTitle.textContent = 'Tillykke, ' + w.name + '!';
+      winText.textContent = w.name + ' vinder med ' + w.score + ' point efter ' + state.rounds + ' runder.';
+    }
     winScores.replaceChildren();
     var ranked = state.players.map(function (p, i) { return { p: p, i: i }; });
     ranked.sort(function (a, b) { return b.p.score - a.p.score || a.i - b.i; });
@@ -2218,6 +2256,10 @@
     state.setupIndex = 0;
     state.replaceIndex = null;
     state.shotsThisRound = 0;
+    state.round = 0;
+    state.soloHits = 0;
+    state.soloMisses = 0;
+    state.tie = null;
     state.targetIndex = null;
     state.lastShot = null;
     state.hitLines = [];
@@ -2248,6 +2290,8 @@
     state.mode = 'solo';
     state.players = [freshPlayer(name, COLORS[0])];
     resetCommon();
+    var srcRoom = keepRoom ? currentRoom() : null;
+    state.rounds = clampRounds(srcRoom ? srcRoom.rounds : soloRoundsInput.value);
     placeComputerPoint();
     state.phase = 'aim';
     state.banner = name + ', punktet er ' + pointLabel(state.soloPoint.x, state.soloPoint.y) + '. Tryk på koordinatsystemet for at skyde.';
@@ -2268,6 +2312,7 @@
       state.players.push(freshPlayer(cleanName(input.value, 'Spiller ' + (i + 1)), COLORS[i]));
     }
     resetCommon();
+    state.rounds = clampRounds(multiRoundsInput.value);
     state.phase = 'setup';
     state.banner = state.players[0].name + ', klik på et ledigt skæringspunkt. ' + placeHintText();
     state.bannerKind = 'info';
@@ -2339,24 +2384,20 @@
     if (roundDone) state.shotsThisRound = 0;
     state.turn = (state.turn + 1) % state.players.length;
     if (roundDone) {
-      var scores = state.players.map(function (p) { return p.score; });
-      var win = winnerAfterRound(scores);
-      if (win >= 0) {
-        endGame(win);
-        return;
-      }
-      var max = Math.max.apply(null, scores);
-      if (max >= 10) {
-        beginTurn('Flere har ' + max + ' point. I spiller en runde mere.');
+      state.round += 1;
+      if (state.round >= state.rounds) {
+        var leaders = leadersAfterGame(state.players.map(function (p) { return p.score; }));
+        endGame(leaders.length === 1 ? leaders[0] : -1, leaders.length > 1 ? leaders : null);
         return;
       }
     }
     beginTurn();
   }
 
-  function endGame(index) {
+  function endGame(index, tie) {
     state.phase = 'win';
     state.winner = index;
+    state.tie = tie || null;
     state.timerWin = null;
     state.locked = true;
     state.hover = null;
@@ -2426,7 +2467,9 @@
         if (Math.abs(y - (a * x + b)) > 1e-4) state.result += ' Inden for margen på 0,02.';
         state.resultKind = 'good';
         var timedRoom = (state.classroom || state.teacherPlaying) && classIsTimedRoom(currentRoom());
-        state.banner = (!timedRoom && state.players[0].score >= 10) ? 'Sådan.' : 'Nyt punkt er på vej.';
+        state.soloHits += 1;
+        var lastRound = !timedRoom && state.soloHits + state.soloMisses >= state.rounds;
+        state.banner = lastRound ? 'Sådan. Det var sidste runde.' : 'Nyt punkt er på vej.';
         state.bannerKind = 'good';
         state.locked = true;
         renderUI();
@@ -2439,7 +2482,7 @@
             return;
           }
           var stillTimed = (state.classroom || state.teacherPlaying) && classIsTimedRoom(currentRoom());
-          if (!stillTimed && state.players[0].score >= 10) {
+          if (!stillTimed && state.soloHits + state.soloMisses >= state.rounds) {
             endGame(0);
             return;
           }
@@ -2457,6 +2500,14 @@
         }, motionMs(CELEBRATE_MS));
       } else {
         classNoteShot(false);
+        state.soloMisses += 1;
+        var missTimed = (state.classroom || state.teacherPlaying) && classIsTimedRoom(currentRoom());
+        if (!missTimed && state.soloHits + state.soloMisses >= state.rounds) {
+          state.result = missText(a, b, x, y);
+          state.resultKind = 'bad';
+          endGame(0);
+          return;
+        }
         state.result = missText(a, b, x, y) + ' Prøv igen på samme punkt.';
         state.resultKind = 'bad';
         state.banner = 'Prøv igen på (' + x + ', ' + y + ').';
@@ -2481,7 +2532,6 @@
       state.replaceIndex = owner;
       state.locked = true;
       state.result = multiHit.text;
-      if (shooter.score >= 10) state.result += ' Runden spilles færdig, før der kåres en vinder.';
       state.resultKind = 'good';
       state.banner = targetPlayer.name + ', dit punkt blev ramt. Klik et nyt ledigt skæringspunkt.';
       state.bannerKind = 'good';
@@ -3145,6 +3195,8 @@ function qrMatrix(text, maskForce) {
   var teacherBonusHint = document.getElementById('teacher-bonus-hint');
   var bonusOffBtn = document.getElementById('bonus-off');
   var bonusOnBtn = document.getElementById('bonus-on');
+  var teacherRoundsInput = document.getElementById('teacher-rounds');
+  var teacherRoundsLabel = document.getElementById('teacher-rounds-label');
   var modeAleneBtn = document.getElementById('mode-alene');
   var modeGrupperBtn = document.getElementById('mode-grupper');
   var teacherStartBtn = document.getElementById('teacher-start');
@@ -3363,7 +3415,7 @@ function qrMatrix(text, maskForce) {
     if (classIsTimedRoom(room)) {
       teacherTimerStatus.textContent = 'Tid tilbage: ' + classFormatRemain(classEndsAt(room) - Date.now());
     } else {
-      teacherTimerStatus.textContent = 'Uden tidsgrænse. Først til 10 point.';
+      teacherTimerStatus.textContent = 'Uden tidsgrænse. ' + clampRounds(room.rounds) + ' runder.';
     }
   }
   function classPaintLobbyClock(room, sess) {
@@ -3701,6 +3753,7 @@ function qrMatrix(text, maskForce) {
       difficulty: d.difficulty === 'quarters' ? 'quarters' : 'positive',
       board: d.board === 'four' ? 'four' : 'one',
       bonus: d.bonus === true,
+      rounds: clampRounds(d.rounds),
       groups: classParseGroups(d.groups),
       endsAt: classParseEndsAt(d.endsAt),
       cmd: { id: classNum(cmd.id), type: type, group: group }
@@ -3777,6 +3830,7 @@ function qrMatrix(text, maskForce) {
       difficulty: room.difficulty === 'quarters' ? 'quarters' : 'positive',
       board: room.board === 'four' ? 'four' : 'one',
       bonus: !!room.bonus,
+      rounds: clampRounds(room.rounds),
       groups: classGroupsPayload(room.groups),
       endsAt: (function () {
         var n = classEndsPayload(room.endsAt);
@@ -3972,7 +4026,7 @@ function qrMatrix(text, maskForce) {
     }
     var stu = classReadStudent(sess.code, sess.id);
     lobbyHi.textContent = 'Hej, ' + sess.name;
-    lobbyRoom.textContent = 'Rum ' + room.code + ' · ' + (room.mode === 'grupper' ? 'Grupper' : 'Hver for sig') + ' · ' + (room.difficulty === 'quarters' ? 'Decimaltal' : 'Hele tal') + ' · ' + (room.board === 'four' ? '4 kvadranter' : '1 kvadrant') + (room.bonus ? ' · Bonuspoint' : '');
+    lobbyRoom.textContent = 'Rum ' + room.code + ' · ' + (room.mode === 'grupper' ? 'Grupper' : 'Hver for sig') + ' · ' + (room.difficulty === 'quarters' ? 'Decimaltal' : 'Hele tal') + ' · ' + (room.board === 'four' ? '4 kvadranter' : '1 kvadrant') + (room.bonus ? ' · Bonuspoint' : '') + ' · ' + clampRounds(room.rounds) + ' runder';
     var groups = room.groups || [];
     var mine = stu ? classGroupById(room, stu.group) : null;
     var live;
@@ -4144,6 +4198,17 @@ function qrMatrix(text, maskForce) {
     classTeacherSnap = '';
     classRenderTeacher(true);
   }
+  function classSetRounds(v) {
+    var room = classOwnRoom();
+    if (!room) return;
+    var n = clampRounds(v);
+    teacherRoundsInput.value = String(n);
+    if (room.rounds === n) return;
+    room.rounds = n;
+    classWriteRoom(room);
+    classTeacherSnap = '';
+    classRenderTeacher(true);
+  }
   function classToggleGames() {
     var room = classOwnRoom();
     if (!room) return;
@@ -4158,7 +4223,7 @@ function qrMatrix(text, maskForce) {
     var room = classReadRoom(sess.code);
     if (!room || room.teacherUid !== classUid) return;
     var students = classListStudents(room.code);
-    var snap = JSON.stringify({ mode: room.mode, gamesOpen: room.gamesOpen, difficulty: room.difficulty, board: room.board, bonus: room.bonus, cmd: room.cmd, groups: room.groups, endsAt: room.endsAt, students: students });
+    var snap = JSON.stringify({ mode: room.mode, gamesOpen: room.gamesOpen, difficulty: room.difficulty, board: room.board, bonus: room.bonus, rounds: room.rounds, cmd: room.cmd, groups: room.groups, endsAt: room.endsAt, students: students });
     if (!force && snap === classTeacherSnap) return;
     classTeacherSnap = snap;
     teacherTitle.textContent = 'Rum ' + room.code;
@@ -4174,7 +4239,7 @@ function qrMatrix(text, maskForce) {
     teacherModeLabel.textContent = grupper ? 'Grupper' : 'Hver for sig';
     teacherModeHint.textContent = grupper
       ? 'Eleverne vælger en gruppe og spiller hver for sig. Pointene lægges sammen.'
-      : 'Eleverne spiller hver for sig. Først til 10, medmindre du starter med tid.';
+      : 'Eleverne spiller hver for sig. ' + clampRounds(room.rounds) + ' runder, medmindre du starter med tid.';
     modeAleneBtn.setAttribute('aria-pressed', grupper ? 'false' : 'true');
     modeGrupperBtn.setAttribute('aria-pressed', grupper ? 'true' : 'false');
     var quarters = room.difficulty === 'quarters';
@@ -4197,6 +4262,8 @@ function qrMatrix(text, maskForce) {
       : 'Hvert ramt skud giver 1 point.';
     bonusOffBtn.setAttribute('aria-pressed', room.bonus ? 'false' : 'true');
     bonusOnBtn.setAttribute('aria-pressed', room.bonus ? 'true' : 'false');
+    teacherRoundsLabel.textContent = clampRounds(room.rounds) + ' runder';
+    if (document.activeElement !== teacherRoundsInput) teacherRoundsInput.value = String(clampRounds(room.rounds));
     teacherGamesBtn.textContent = room.gamesOpen ? 'Luk for nye spil' : 'Åbn for nye spil';
     teacherGamesLabel.textContent = room.gamesOpen ? 'Nye spil er åbne' : 'Nye spil er lukket';
     teacherPlayBtn.hidden = grupper;
@@ -4308,6 +4375,7 @@ function qrMatrix(text, maskForce) {
       difficulty: 'positive',
       board: 'one',
       bonus: false,
+      rounds: 10,
       cmd: { id: 0, type: 'none', group: null },
       createdAt: classFs.serverTimestamp()
     });
@@ -4581,6 +4649,7 @@ function qrMatrix(text, maskForce) {
       difficulty: d.difficulty === 'quarters' ? 'quarters' : 'positive',
       board: d.board === 'four' ? 'four' : 'one',
       bonus: d.bonus === true,
+      rounds: clampRounds(d.rounds),
       uids: uids,
       members: members,
       game: typeof d.game === 'string' ? d.game : null,
@@ -4691,6 +4760,9 @@ function qrMatrix(text, maskForce) {
       setupIndex: state.setupIndex,
       replaceIndex: state.replaceIndex,
       shotsThisRound: state.shotsThisRound,
+      rounds: state.rounds,
+      round: state.round,
+      tie: state.tie,
       targetIndex: state.targetIndex,
       lastShot: ls ? { a: ls.a, b: ls.b, by: ls.by, hit: !!ls.hit, x: ls.x, y: ls.y } : null,
       hitLines: state.hitLines.slice(-30).map(function (l) { return { a: l.a, b: l.b, c: l.color }; }),
@@ -4743,6 +4815,9 @@ function qrMatrix(text, maskForce) {
     state.setupIndex = Math.floor(onlineNum(g.setupIndex, 0, n, 0));
     state.replaceIndex = idx(g.replaceIndex);
     state.shotsThisRound = Math.floor(onlineNum(g.shotsThisRound, 0, n, 0));
+    state.rounds = clampRounds(g.rounds != null ? g.rounds : m.rounds);
+    state.round = Math.floor(onlineNum(g.round, 0, 50, 0));
+    state.tie = Array.isArray(g.tie) ? g.tie.map(function (v) { return Math.floor(onlineNum(v, 0, n - 1, 0)); }) : null;
     state.targetIndex = idx(g.targetIndex);
     var ls = g.lastShot;
     state.lastShot = ls ? {
@@ -4756,7 +4831,7 @@ function qrMatrix(text, maskForce) {
     state.resultKind = g.resultKind === 'good' || g.resultKind === 'bad' ? g.resultKind : 'info';
     state.banner = typeof g.banner === 'string' ? g.banner : '';
     state.bannerKind = g.bannerKind === 'good' || g.bannerKind === 'bad' ? g.bannerKind : 'info';
-    state.winner = state.phase === 'win' ? (idx(g.winner) || 0) : null;
+    state.winner = state.phase === 'win' ? (g.winner === -1 ? -1 : (idx(g.winner) || 0)) : null;
     state.timerWin = null;
     state.locked = state.phase === 'win';
     state.placeError = '';
@@ -4850,6 +4925,11 @@ function qrMatrix(text, maskForce) {
     state.lastShot = null;
     var note = gone + ' er ikke længere med.';
     if (wasPhase === 'win') {
+      if (state.tie) {
+        state.tie = state.tie.filter(function (k) { return k !== i; }).map(function (k) { return k > i ? k - 1 : k; });
+        if (state.tie.length === 1) { state.winner = state.tie[0]; state.tie = null; }
+        return true;
+      }
       if (state.winner === i) state.winner = null;
       else if (state.winner > i) state.winner -= 1;
       if (state.winner == null) state.winner = 0;
@@ -4951,7 +5031,7 @@ function qrMatrix(text, maskForce) {
     onlinePaintSettingsPicker();
   }
   function onlineSettingsText(m) {
-    return (m.difficulty === 'quarters' ? 'Decimaltal' : 'Hele tal') + ' · ' + (m.board === 'four' ? '4 kvadranter' : '1 kvadrant') + ' · ' + (m.bonus ? 'Bonuspoint: skrå linje giver 5' : 'Bonuspoint fra') + ' · Først til 10';
+    return (m.difficulty === 'quarters' ? 'Decimaltal' : 'Hele tal') + ' · ' + (m.board === 'four' ? '4 kvadranter' : '1 kvadrant') + ' · ' + (m.bonus ? 'Bonuspoint: skrå linje giver 5' : 'Bonuspoint fra') + ' · ' + clampRounds(m.rounds) + ' runder';
   }
   function onlineShowLobby() {
     onlineHide();
@@ -5023,6 +5103,7 @@ function qrMatrix(text, maskForce) {
       return p;
     });
     resetCommon();
+    state.rounds = clampRounds(m.rounds);
     state.phase = 'setup';
     state.banner = state.players[0].name + ', klik på et ledigt skæringspunkt. ' + placeHintText();
     state.bannerKind = 'info';
@@ -5050,6 +5131,7 @@ function qrMatrix(text, maskForce) {
         difficulty: onlineSettings.difficulty,
         board: onlineSettings.board,
         bonus: onlineSettings.bonus,
+        rounds: clampRounds(onlineRoundsInput.value),
         playerUids: [classUid],
         members: onlineMembersJson([{ u: classUid, n: name }]),
         game: null,
@@ -5235,6 +5317,7 @@ function qrMatrix(text, maskForce) {
   boardFourBtn.addEventListener('click', function () { classSetBoard('four'); });
   bonusOffBtn.addEventListener('click', function () { classSetBonus(false); });
   bonusOnBtn.addEventListener('click', function () { classSetBonus(true); });
+  teacherRoundsInput.addEventListener('change', function () { classSetRounds(teacherRoundsInput.value); });
   teacherStartBtn.addEventListener('click', function () { classStartPlay(null); });
   teacherStartTimed.addEventListener('click', function () {
     var raw = String(teacherMinutes.value || '').trim();

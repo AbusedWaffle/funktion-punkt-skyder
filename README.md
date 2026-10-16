@@ -15,7 +15,7 @@ Tip: Tryk på del-knappen i browseren og vælg **Føj til hjemmeskærm**, så li
 ## Sådan spiller man
 Uden for et rum ligger punkterne på heltalsgitteret. x går fra 1 til 10, og y fra 0 til 10. Du skyder med en ret linje. Skuddet rammer, hvis linjen går gennem punktet. Der er mange linjer, der kan ramme det samme punkt. Spillet viser den linje, du skrev, når du rammer.
 
-Først til 10 point vinder. Spiller I flere, kåres vinderen først, når runden er færdig, og kun hvis én spiller alene ligger forrest.
+Spillet varer et antal runder, som man selv vælger under **Antal runder** (1 til 50, standard 10). Spiller du alene, er ét skud én runde, og til sidst ser du dine point og hvor mange skud der ramte og gik forbi. Spiller I flere, er en runde ét skud fra hver spiller. Efter sidste runde vinder den med flest point, og står flere lige øverst, er det uafgjort mellem dem. På hver sin telefon vælger værten antallet af runder. I et rum vælger læreren det, medmindre spillet startes med tid. Så slutter det, når tiden er gået.
 
 Minusknappen ved a og b skifter fortegn, også når telefonens tastatur ikke har minus.
 
