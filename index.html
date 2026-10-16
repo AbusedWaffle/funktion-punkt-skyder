@@ -104,6 +104,22 @@
   }
   .choice-title { font-size: 1.28rem; font-weight: 750; }
   .choice-text { color: var(--muted); }
+  .open-box { margin-top: 18px; background: var(--paper); border: 1.5px solid var(--stroke); border-radius: 16px; padding: 14px 16px; box-shadow: var(--shadow); }
+  .open-box h2 { margin: 0; font-size: 1.2rem; }
+  .open-sub { margin: 2px 0 10px; color: var(--muted); font-size: 0.92rem; }
+  .open-list { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 8px; max-height: 300px; overflow-y: auto; }
+  .open-empty { color: var(--muted); padding: 10px 0; text-align: center; }
+  .open-item { width: 100%; text-align: left; display: grid; grid-template-columns: auto 1fr auto; gap: 2px 10px; align-items: center; background: #fff; border: 1.5px solid var(--stroke); border-radius: 12px; padding: 10px 12px; font: inherit; color: inherit; cursor: pointer; }
+  .open-item:hover, .open-item:focus-visible { border-color: var(--accent); }
+  .open-tag { grid-row: span 2; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 4px 7px; border-radius: 999px; background: var(--info-bg); color: var(--accent-dark); }
+  .open-tag.spil { background: var(--good-bg); color: var(--good); }
+  .open-name { font-weight: 700; }
+  .open-count { grid-row: span 2; font-weight: 700; font-size: 0.9rem; white-space: nowrap; }
+  .open-meta { color: var(--muted); font-size: 0.82rem; }
+  .open-code { display: flex; gap: 8px; }
+  .open-code input { flex: 1; min-width: 0; font: inherit; padding: 10px 12px; border: 1.5px solid var(--stroke); border-radius: 12px; background: #fff; text-transform: uppercase; }
+  .open-code input::placeholder { text-transform: none; }
+  .open-code .btn { width: auto; margin: 0; padding-left: 18px; padding-right: 18px; }
   .setup {
     margin-top: 14px;
     background: var(--paper);
@@ -701,12 +717,18 @@
         <span class="choice-title">Jeg er lærer</span>
         <span class="choice-text">Opret et rum med kode, link og QR. Se elevernes point, og hop selv ind i spillet.</span>
       </button>
-      <button type="button" class="choice" id="pick-student" aria-pressed="false">
-        <span class="choice-kicker">Klassen</span>
-        <span class="choice-title">Jeg er elev</span>
-        <span class="choice-text">Gå med via link eller kode, og skriv dit navn.</span>
-      </button>
     </div>
+
+    <section class="open-box" id="open-box" aria-labelledby="open-title">
+      <h2 id="open-title">Gå med</h2>
+      <p class="open-sub">Tryk på et åbent rum, eller skriv koden fra læreren eller værten.</p>
+      <ul class="open-list" id="open-list" aria-live="polite"><li class="open-empty">Henter åbne rum …</li></ul>
+      <form class="open-code" id="open-code-form">
+        <input id="open-code" type="text" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Kode, f.eks. AB-CDEF" aria-label="Kode">
+        <button class="btn" type="submit">Gå med</button>
+      </form>
+      <p id="open-error" class="error" role="alert" hidden></p>
+    </section>
 
     <p class="learn-entry"><button type="button" class="learn-link" id="open-learn">Hvordan fungerer en lineær funktion?</button></p>
     <p class="learn-entry" id="back-room-wrap" hidden><button type="button" class="learn-link" id="back-room">Tilbage til lærermenuen</button></p>
@@ -828,7 +850,7 @@
         </ul>
         <p><strong>Hver sin telefon.</strong> Vælg Flere spillere og Hver sin telefon. Én opretter et spil og vælger sværhedsgrad, koordinatsystem, bonuspoint og antal runder. De andre går med via kode, link eller QR og skriver deres navn. Værten trykker Start spillet, når alle er med. Reglerne er de samme som på samme skærm, men hver telefon kan kun lægge punkter og skyde, når det er dens tur. De andre ser brættet live. Værten kan springe en tur over eller fjerne en spiller, der er faldet fra. Forlader værten spillet, lukkes det for alle.</p>
         <p>Punkter på y-aksen (x = 0) bruges ikke, fordi enhver linje med den rigtige b ville ramme dem.</p>
-        <p><strong>Lærer og elever.</strong> Læreren opretter et rum. Eleverne går med med kode eller link og et navn. Læreren vælger Hver for sig eller Grupper. I grupper navngiver læreren grupperne, og hver elev vælger en af dem. Eleverne spiller stadig alene mod computeren. Pointene lægges sammen i gruppen. Læreren kan sætte en tidsgrænse i hele minutter. Når tiden løber ud, stopper spillet. Uden grupper vinder eleven med flest point. I grupper vinder gruppen med flest point tilsammen. Står flere lige, er det uafgjort. Uden tidsgrænse spiller hver elev det antal runder, læreren har valgt. Ét skud er én runde. Læreren kan lukke for nye spil, sende alle til menuen og selv hoppe ind i spillet. Under spillet er der altid en knap tilbage til lærermenuen. Læreren vælger sværhedsgrad, koordinatsystem og bonuspoint for rummet. Hele tal: punktet ligger på hele koordinater. Decimaltal: punktet ligger på koordinater i spring på 0,25. 1 kvadrant er akser fra 0 til 10. 4 kvadranter lægger akserne gennem midten, med x og y fra −10 til 10, og stadig ingen punkter på y-aksen. I et rum er a og b fra −10 til 10, i spring på 0,25, samme for begge sværhedsgrader. Med bonuspoint giver et ramt skud 5 point, hvis linjen ikke er vandret. En vandret linje giver 1 point. Uden for et rum er brættet 1 kvadrant, og a og b kan være frie tal.</p>
+        <p><strong>Lærer og elever.</strong> Læreren opretter et rum. Eleverne går med fra listen over åbne rum på forsiden, med kode eller link, og et navn. Læreren vælger Hver for sig eller Grupper. I grupper navngiver læreren grupperne, og hver elev vælger en af dem. Eleverne spiller stadig alene mod computeren. Pointene lægges sammen i gruppen. Læreren kan sætte en tidsgrænse i hele minutter. Når tiden løber ud, stopper spillet. Uden grupper vinder eleven med flest point. I grupper vinder gruppen med flest point tilsammen. Står flere lige, er det uafgjort. Uden tidsgrænse spiller hver elev det antal runder, læreren har valgt. Ét skud er én runde. Læreren kan lukke for nye spil, sende alle til menuen og selv hoppe ind i spillet. Under spillet er der altid en knap tilbage til lærermenuen. Læreren vælger sværhedsgrad, koordinatsystem og bonuspoint for rummet. Hele tal: punktet ligger på hele koordinater. Decimaltal: punktet ligger på koordinater i spring på 0,25. 1 kvadrant er akser fra 0 til 10. 4 kvadranter lægger akserne gennem midten, med x og y fra −10 til 10, og stadig ingen punkter på y-aksen. I et rum er a og b fra −10 til 10, i spring på 0,25, samme for begge sværhedsgrader. Med bonuspoint giver et ramt skud 5 point, hvis linjen ikke er vandret. En vandret linje giver 1 point. Uden for et rum er brættet 1 kvadrant, og a og b kan være frie tal.</p>
       </div>
     </details>
   </section>
@@ -3433,7 +3455,6 @@ function qrMatrix(text, maskForce) {
   var joinError = document.getElementById('join-error');
   var joinBackBtn = document.getElementById('join-back');
   var pickTeacher = document.getElementById('pick-teacher');
-  var pickStudent = document.getElementById('pick-student');
   var lobbyHi = document.getElementById('lobby-hi');
   var lobbyRoom = document.getElementById('lobby-room');
   var lobbyStatus = document.getElementById('lobby-status');
@@ -3986,7 +4007,7 @@ function qrMatrix(text, maskForce) {
     }
     classUnsubs = [];
   }
-  function classOnRemote() { classTick(); }
+  function classOnRemote() { classTick(); try { openSync(false); } catch (e) {} }
   function classWatch(code) {
     classStopWatch();
     classCache = { code: code, room: null, students: [], roomSeen: false, playersSeen: false };
@@ -4667,6 +4688,7 @@ function qrMatrix(text, maskForce) {
     classHadStudents = false;
     classCache = { code: '', room: null, students: [], roomSeen: false, playersSeen: false };
     classSaveSession(null);
+    try { openSync(false); } catch (e) {}
     state.classroom = false;
     state.teacherPlaying = false;
     classSetQuery('');
@@ -4986,6 +5008,7 @@ function qrMatrix(text, maskForce) {
     onlineStopWatch();
     onlineSaveSession(null);
     onlineCache = { code: '', data: null, seen: false };
+    try { openSync(false); } catch (e) {}
     onlineActed = false;
     onlineLastJson = '';
     onlineRev = 0;
@@ -5006,6 +5029,7 @@ function qrMatrix(text, maskForce) {
   function onlineOnRemote() {
     var sess = onlineSession();
     if (!sess) return;
+    try { openSync(false); } catch (e) {}
     var m = onlineMatchData();
     if (!m) { onlineEnd(onlineIsHost() ? '' : 'Værten har lukket spillet.'); return; }
     if (classUid && m.uids.indexOf(classUid) < 0) { onlineEnd('Du er ikke længere med i spillet.'); return; }
@@ -5399,6 +5423,7 @@ function qrMatrix(text, maskForce) {
     onlineRev = Math.max(onlineRev, m.rev) + 1;
     onlineActed = false;
     showGame();
+    if (openMine.code === sess.code) { openMine = { code: '', json: '', at: 0 }; classFs.deleteDoc(classFs.doc(classDb, OPEN_COLLECTION, sess.code)).catch(function () {}); }
     classFs.updateDoc(onlineRef(sess.code), { status: 'playing', game: json, rev: onlineRev, updated: Date.now() })
       .catch(function (err) { classNetError(onlineErrText(err)); });
   }
@@ -5588,16 +5613,6 @@ function qrMatrix(text, maskForce) {
       classShowStart();
     });
   });
-  pickStudent.addEventListener('click', function () {
-    pickSolo.setAttribute('aria-pressed', 'false');
-    pickMulti.setAttribute('aria-pressed', 'false');
-    soloForm.hidden = true;
-    multiForm.hidden = true;
-    var pre = '';
-    try { pre = classNormCode(new URLSearchParams(location.search).get('rum') || ''); }
-    catch (e) { pre = ''; }
-    classShowJoin(pre);
-  });
   joinForm.addEventListener('submit', function (e) {
     e.preventDefault();
     var code = classNormCode(joinCodeInput.value);
@@ -5722,6 +5737,165 @@ function qrMatrix(text, maskForce) {
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
     window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
   }
+
+  // ── Åbne rum (offentligt indeks, som FlipX' lobbies) ─────────────────────
+  var OPEN_COLLECTION = 'funktionPunktSkyderOpen';
+  var OPEN_BEAT_MS = 30000;
+  var OPEN_STALE_MS = 120000;
+  var openList = document.getElementById('open-list');
+  var openCodeForm = document.getElementById('open-code-form');
+  var openCodeInput = document.getElementById('open-code');
+  var openError = document.getElementById('open-error');
+  var openRows = [];
+  var openSeen = false;
+  var openUnsub = null;
+  var openMine = { code: '', json: '', at: 0 };
+  function openRoomSettings(room) {
+    return (room.mode === 'grupper' ? 'Grupper' : 'Hver for sig') + ' · ' + (room.difficulty === 'quarters' ? 'Decimaltal' : 'Hele tal') + ' · ' + (room.board === 'four' ? '4 kvadranter' : '1 kvadrant') + (room.bonus ? ' · Bonus' : '') + ' · ' + clampRounds(room.rounds) + ' runder';
+  }
+  function openDesired() {
+    if (!classUid) return null;
+    var sess = classSession();
+    if (sess && sess.role === 'teacher' && classCache.code === sess.code) {
+      var room = classCache.room;
+      if (room && room.teacherUid === classUid && room.gamesOpen) {
+        return { type: 'rum', code: sess.code, host: 'Lærer', players: Math.min(classRealStudents().length, 200), max: 0, settings: openRoomSettings(room) };
+      }
+    }
+    var os = onlineSession();
+    var m = onlineMatchData();
+    if (os && m && m.hostUid === classUid && m.status === 'lobby' && onlineCache.code === os.code) {
+      var host = 'Vært';
+      m.members.forEach(function (mem) { if (mem.u === m.hostUid) host = mem.n; });
+      return { type: 'spil', code: os.code, host: String(host).slice(0, 20), players: Math.min(m.members.length, 4), max: 4, settings: onlineSettingsText(m).replace('Bonuspoint: skrå linje giver 5', 'Bonus').replace('Bonuspoint fra · ', '') };
+    }
+    return null;
+  }
+  function openSync(force) {
+    if (!classFs || !classDb || !classUid) return;
+    var want = openDesired();
+    var now = Date.now();
+    if (openMine.code && (!want || want.code !== openMine.code)) {
+      var gone = openMine.code;
+      openMine = { code: '', json: '', at: 0 };
+      classFs.deleteDoc(classFs.doc(classDb, OPEN_COLLECTION, gone)).catch(function () {});
+    }
+    if (!want) return;
+    var json = JSON.stringify(want);
+    if (!force && openMine.code === want.code && openMine.json === json && now - openMine.at < OPEN_BEAT_MS) return;
+    openMine = { code: want.code, json: json, at: now };
+    var doc = Object.assign({}, want, { ownerUid: classUid, updatedAt: classFs.serverTimestamp() });
+    classFs.setDoc(classFs.doc(classDb, OPEN_COLLECTION, want.code), doc).catch(function () { openMine.at = 0; });
+  }
+  function openMillis(v) {
+    if (v && typeof v.toMillis === 'function') return v.toMillis();
+    return 0;
+  }
+  function openRender() {
+    if (!openList) return;
+    var now = Date.now();
+    var mine = openMine.code;
+    var rows = openRows.filter(function (r) {
+      var t = r.t || now; // lige skrevet lokalt (serverTimestamp afventer)
+      return now - t < OPEN_STALE_MS && r.code !== mine;
+    });
+    rows.sort(function (x, y) { return (y.t || now) - (x.t || now); });
+    openList.textContent = '';
+    if (!rows.length) {
+      var li = document.createElement('li');
+      li.className = 'open-empty';
+      li.textContent = openSeen ? 'Ingen åbne rum lige nu' : 'Henter åbne rum …';
+      openList.appendChild(li);
+      return;
+    }
+    rows.forEach(function (r) {
+      var li = document.createElement('li');
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'open-item';
+      b.dataset.code = r.code;
+      b.dataset.type = r.type;
+      var tag = document.createElement('span');
+      tag.className = 'open-tag' + (r.type === 'spil' ? ' spil' : '');
+      tag.textContent = r.type === 'spil' ? 'Spil' : 'Klasse';
+      var nm = document.createElement('span');
+      nm.className = 'open-name';
+      nm.textContent = r.type === 'spil' ? (r.host + 's spil') : ('Klasserum ' + r.code);
+      var ct = document.createElement('span');
+      ct.className = 'open-count';
+      ct.textContent = r.type === 'spil' ? (r.players + '/' + (r.max || 4)) : (r.players + (r.players === 1 ? ' elev' : ' elever'));
+      var meta = document.createElement('span');
+      meta.className = 'open-meta';
+      meta.textContent = r.settings;
+      b.appendChild(tag); b.appendChild(nm); b.appendChild(ct); b.appendChild(meta);
+      b.setAttribute('aria-label', 'Gå med: ' + nm.textContent + ', ' + ct.textContent);
+      li.appendChild(b);
+      openList.appendChild(li);
+    });
+  }
+  async function openListen() {
+    await classFirebase();
+    if (openUnsub) return;
+    var q = classFs.query(classFs.collection(classDb, OPEN_COLLECTION), classFs.orderBy('updatedAt', 'desc'), classFs.limit(50));
+    openUnsub = classFs.onSnapshot(q, function (snap) {
+      var out = [];
+      snap.forEach(function (d) {
+        var x = d.data() || {};
+        if ((x.type !== 'rum' && x.type !== 'spil') || typeof x.code !== 'string') return;
+        out.push({ code: x.code, type: x.type, host: String(x.host || ''), players: Number(x.players) || 0, max: Number(x.max) || 0, settings: String(x.settings || ''), t: openMillis(x.updatedAt) });
+      });
+      openRows = out;
+      openSeen = true;
+      openRender();
+    }, function () {
+      openSeen = true;
+      openRows = [];
+      openRender();
+    });
+  }
+  function openGo(code, type) {
+    openError.hidden = true;
+    pickSolo.setAttribute('aria-pressed', 'false');
+    pickMulti.setAttribute('aria-pressed', 'false');
+    soloForm.hidden = true;
+    multiForm.hidden = true;
+    if (type === 'spil') onlineShowJoin(code);
+    else classShowJoin(code);
+  }
+  openList.addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('.open-item') : null;
+    if (b) openGo(b.dataset.code, b.dataset.type);
+  });
+  openCodeForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var code = classNormCode(openCodeInput.value);
+    if (!code) { openError.hidden = false; openError.textContent = 'Skriv koden med 6 tegn, f.eks. AB-CDEF.'; return; }
+    var btn = openCodeForm.querySelector('button');
+    btn.disabled = true;
+    openError.hidden = true;
+    (async function () {
+      await classFirebase();
+      var r = await classFs.getDoc(classFs.doc(classDb, FPS_COLLECTION, code));
+      if (r.exists()) return 'rum';
+      var m = await classFs.getDoc(classFs.doc(classDb, MATCH_COLLECTION, code));
+      if (m.exists()) return 'spil';
+      return '';
+    })().then(function (type) {
+      btn.disabled = false;
+      if (!type) { openError.hidden = false; openError.textContent = 'Der er ikke noget rum eller spil med den kode. Tjek koden.'; return; }
+      openCodeInput.value = '';
+      openGo(code, type);
+    }, function (err) {
+      btn.disabled = false;
+      openError.hidden = false;
+      openError.textContent = classErrText(err);
+    });
+  });
+  window.setInterval(function () { try { openSync(false); } catch (e) {} try { openRender(); } catch (e) {} }, 5000);
+  window.addEventListener('pagehide', function () {
+    // Lukker fanen: entry forsvinder senest efter 2 min. Ellers hjerteslag holder den.
+  });
+  openListen().catch(function () { openSeen = true; openRender(); });
   classBoot().catch(function (err) { classNetError(classErrText(err)); });
   onlineBoot().catch(function (err) { classNetError(onlineErrText(err)); });
 
