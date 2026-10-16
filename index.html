@@ -640,6 +640,27 @@
     .learn-row { grid-template-columns: auto minmax(0, 1fr) 42px; }
     .learn-row input[type="range"] { grid-column: 1 / -1; }
   }
+  /* Mobil-venlig spillerbar: værktøjsrække + gitter af spillerkort */
+  .scorebar { height: auto !important; display: flex !important; flex-direction: column; align-items: stretch !important; gap: 4px !important; padding: 4px 8px 6px !important; }
+  .bar-tools { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .bar-tools #round-label { flex: 1 1 auto !important; max-width: none !important; display: block !important; font-weight: 700; }
+  .bar-tools .online-tools { flex-wrap: wrap; }
+  #screen-game #scoreboard { display: grid !important; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 4px; overflow: visible !important; flex: none !important; }
+  #screen-game #scoreboard.n1 { grid-template-columns: minmax(0, 1fr); }
+  @media (max-width: 520px) { #screen-game #scoreboard { grid-template-columns: 1fr 1fr; } #screen-game #scoreboard.n1 { grid-template-columns: 1fr; } }
+  #screen-game .score-row { display: grid !important; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-rows: auto auto; column-gap: 6px; row-gap: 0; align-items: center; padding: 3px 8px !important; border-radius: 10px !important; background: #fff !important; box-shadow: inset 0 0 0 1px var(--stroke) !important; min-width: 0; white-space: normal !important; }
+  #screen-game .score-row .swatch { grid-row: 1; grid-column: 1; width: 10px; height: 10px; border-radius: 50%; background: var(--p); display: inline-block; }
+  #screen-game .score-row .who { grid-row: 1; grid-column: 2; display: block !important; min-width: 0; }
+  #screen-game .score-row .pname { display: block !important; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 750; font-size: 0.85rem; }
+  #screen-game .score-row .pscore { grid-row: 1; grid-column: 3; white-space: nowrap; font-size: 0.85rem; font-weight: 750; }
+  #screen-game .score-row .pscore .of { font-size: 0.7rem; font-weight: 600; color: var(--muted); }
+  #screen-game .score-row .role { grid-row: 2; grid-column: 1 / -1; display: block !important; font-size: 0.7rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 1em; }
+  #screen-game .score-row .me { font-size: 0.65rem; font-weight: 800; color: var(--accent-dark); margin-left: 4px; }
+  #screen-game .score-row.is-active { background: var(--good-bg) !important; box-shadow: inset 0 0 0 2px var(--good) !important; }
+  #screen-game .score-row.is-active .role { color: var(--good); font-weight: 800; }
+  #screen-game .score-row.is-gone { opacity: 0.6; }
+  #screen-game .score-row.is-gone .role { color: #8a2a1a; font-weight: 700; }
+  #screen-game .board-wrap { justify-content: flex-start !important; }
 </style>
 </head>
 <body>
@@ -1036,7 +1057,7 @@
   <section id="screen-game" hidden>
     <div class="play">
       <header class="scorebar">
-        <div id="scoreboard"></div>
+        <div class="bar-tools">
         <p id="round-label"></p>
         <details class="rules-pop">
           <summary>Regler</summary>
@@ -1047,6 +1068,8 @@
         <button type="button" class="teacher-back" id="to-teacher" hidden>Til lærermenuen</button>
         <button type="button" class="text-btn" id="forfra">Start forfra</button>
         <div id="online-tools" class="online-tools" hidden></div>
+        </div>
+        <div id="scoreboard"></div>
       </header>
       <div class="board-wrap" id="board-wrap">
         <canvas id="board" width="640" height="640" aria-label="Koordinatsystem fra 0 til 10"></canvas>
@@ -2146,6 +2169,7 @@
 
   function renderScores() {
     scoreboard.replaceChildren();
+    scoreboard.className = 'n' + state.players.length;
     for (var i = 0; i < state.players.length; i++) {
       var p = state.players[i];
       var row = document.createElement('div');
@@ -2161,13 +2185,19 @@
       nameBox.className = 'pname';
       nameBox.textContent = p.name;
       who.appendChild(nameBox);
-      var role = roleText(i);
-      if (role) {
-        var roleEl = document.createElement('span');
-        roleEl.className = 'role';
-        roleEl.textContent = role;
-        who.appendChild(roleEl);
+      if (state.online && p.uid && p.uid === classUid) {
+        var meEl = document.createElement('span');
+        meEl.className = 'me';
+        meEl.textContent = '(Dig)';
+        nameBox.appendChild(meEl);
       }
+      var role = roleText(i);
+      var isAct = i === activeIndex() && state.phase !== 'win';
+      if (isAct && role && role.indexOf('din tur') !== 0 && role !== 'væk') role = 'har tur · ' + role;
+      if (role) role = role.charAt(0).toUpperCase() + role.slice(1);
+      var roleEl = document.createElement('span');
+      roleEl.className = 'role';
+      roleEl.textContent = role || '\u00a0';
       var scoreEl = document.createElement('span');
       scoreEl.className = 'pscore';
       var prev = seenScores.get(i);
@@ -2183,6 +2213,7 @@
       row.appendChild(sw);
       row.appendChild(who);
       row.appendChild(scoreEl);
+      row.appendChild(roleEl);
       scoreboard.appendChild(row);
     }
   }
